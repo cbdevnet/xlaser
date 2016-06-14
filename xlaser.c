@@ -12,7 +12,19 @@ int main(int argc, char** argv){
 		exit(usage(argv[0]));
 	}
 
+	CONFIG config = {
+		.dmx_address = 16,
+		.windowed = false,
+		.window_name = "xlaser"
+	};
+	XRESOURCES xres = {};
 
+	//TODO parse arguments & config file
+
+	if(x11_init(&xres, &config) < 0){
+		fprintf(stderr, "Failed to initialize window\n");
+		exit(usage(argv[0]));
+	}
 
 	return 0;
 }

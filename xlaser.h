@@ -10,6 +10,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xutil.h>
 //#include <X11/Xft/Xft.h>
 #include <X11/extensions/Xdbe.h>
 
@@ -34,6 +35,8 @@ typedef struct /*XLASER_CFG*/ {
 	unsigned xmax;
 	unsigned ymax;
 	char* bindhost;
+	char* window_name;
+	bool double_buffer;
 	//char* backgnd_image;
 	//char** gobos;
 	//chanmap?
@@ -51,3 +54,5 @@ typedef struct /*XLASER_CFG*/ {
 // Rotation Speed
 
 #include "network.h"
+#include "xfds.c"
+#include "x11.c"
