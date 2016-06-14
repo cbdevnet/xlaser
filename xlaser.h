@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <signal.h>
 //#include <unistd.h>
 //#include <fcntl.h>
 //#include <ctype.h>
@@ -15,6 +16,8 @@
 #include <X11/extensions/Xdbe.h>
 
 #include "xfds.h"
+
+volatile sig_atomic_t abort_signaled = 0;
 
 typedef struct /*_XDATA*/ {
 	int screen;
@@ -37,6 +40,7 @@ typedef struct /*XLASER_CFG*/ {
 	char* bindhost;
 	char* window_name;
 	bool double_buffer;
+	int sockfd;
 	//char* backgnd_image;
 	//char** gobos;
 	//chanmap?
@@ -56,3 +60,4 @@ typedef struct /*XLASER_CFG*/ {
 #include "network.h"
 #include "xfds.c"
 #include "x11.c"
+#include "coreloop.c"
