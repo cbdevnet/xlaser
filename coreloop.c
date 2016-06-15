@@ -5,7 +5,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 	unsigned i;
 	XEvent event;
 	XdbeSwapInfo swap_info;
-	
+
 	char* display_buffer = NULL;
 	char pressed_key;
 
@@ -100,6 +100,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 		if(error > 0){
 			if(FD_ISSET(config->sockfd, &readfds)){
 				fprintf(stderr, "ArtNet Data\n");
+				artnet_handler(config);
 			}
 			else{
 				fprintf(stderr, "X Data\n");

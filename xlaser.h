@@ -58,6 +58,8 @@ typedef struct /*XLASER_CFG*/ {
 // Rotation Speed
 
 #include "network.h"
+#include "artnet.h"
+#include "artnet.c"
 #include "xfds.c"
 #include "x11.c"
 #include "coreloop.c"
