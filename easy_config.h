@@ -39,3 +39,7 @@ unsigned econfig_addCategory(EConfig* config, const char* category);
 int econfig_addParam(EConfig* config, unsigned category, const char* param, void* f);
 int econfig_parse(EConfig* config);
 void econfig_free(EConfig* config);
+
+int econfig_getInt(char* value);
+unsigned econfig_getUnsignedInt(char* value);
+int econfig_getBoolean(char* value);

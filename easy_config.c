@@ -25,9 +25,9 @@ unsigned econfig_addCategory(EConfig* config, const char* category) {
 	cat->id = config->lastid;
 	cat->params = NULL;
 	cat->next = NULL;
-	
+
 	config->lastid++;
-	
+
 	if (config->categories) {
 		ECCategory* c = config->categories;
 		while (c->next) {
@@ -115,12 +115,12 @@ char* econfig_trimWhitespaces(char* line) {
 
 
 int econfig_isComment(char* line) {
-	
+
 	// for us empty string is a comment
 	if (strlen(line) < 1) {
 		return 1;
 	}
-	
+
 	switch (line[0]) {
 		case '/':
 			if (strlen(line) < 2 || line[1] != '/') {
@@ -195,19 +195,36 @@ int econfig_parseParam(EConfig* config, char* key, char* value) {
 	return EC_KEY_NOT_FOUND;
 }
 
-int econfig_parseLine(EConfig* config, char* line, size_t len) {	
-	// trim	
+char* econfig_trimQuotes(char* str) {
+	unsigned len = strlen(str);
+
+	if (len < 2) {
+		return str;
+	}
+
+	if (str[0] != '"' || str[len -1] != '"') {
+		return str;
+	}
+
+	str[len - 1] = 0;
+	str++;
+
+	return str;
+}
+
+int econfig_parseLine(EConfig* config, char* line, size_t len) {
+	// trim
 	line = econfig_trimWhitespaces(line);
 
 	//comment
 	if (econfig_isComment(line)) {
 		return EC_SUCCESS;
 	}
-	
+
 	// category
 	if (line[0] == '[') {
 		config->lastid = econfig_parseCategory(config, line);
-		
+
 		if (config->lastid < 0) {
 			return config->lastid;
 		} else {
@@ -227,9 +244,11 @@ int econfig_parseLine(EConfig* config, char* line, size_t len) {
 
 	// trim splits
 	key = econfig_trimWhitespaces(key);
+	key = econfig_trimQuotes(key);
 	value = econfig_trimWhitespaces(value);
+	value = econfig_trimQuotes(value);
 
-	// check key	
+	// check key
 	return econfig_parseParam(config, key, value);
 }
 
@@ -258,4 +277,35 @@ int econfig_parse(EConfig* config) {
 	fclose(file);
 
 	return EC_SUCCESS;
+}
+
+int econfig_getInt(char* value) {
+	return strtol(value, NULL, 10);
+}
+
+unsigned econfig_getUnsignedInt(char* value) {
+	return strtoul(value, NULL, 10);
+}
+
+int econfig_getBoolean(char* value) {
+
+	/* first to lower case*/
+	unsigned len = strlen(value);
+	int i;
+	for (i = 0; i < len; i++) {
+		value[i] = tolower(value[i]);
+	}
+
+	if (!strcmp(value, "true")) {
+		return 1;
+	} else if (!strcmp(value, "false")) {
+		return 0;
+	} else if (!strcmp(value, "1")) {
+		return 1;
+	} else if (!strcmp(value, "0")) {
+		return 0;
+	}
+
+	return -1;
+
 }
