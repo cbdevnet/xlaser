@@ -49,6 +49,16 @@ int artnet_output_handler(CONFIG* config, char* buf) {
 	/* print_dmx_output(art->data, art->length) */
 
 
+	if (art->net != config->art_net) {
+		printf("not my net.\n");
+		return 0;
+	}
+
+	if (art->subUni != config->art_subUni) {
+		printf("not my subUniverse.\n");
+		return 0;
+	}
+
 	if (config->dmx_address + DMX_CHANNELS > art->length) {
 		fprintf(stderr, "dmx_address is too high for received data\n");
 		return -1;

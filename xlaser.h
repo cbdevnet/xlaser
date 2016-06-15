@@ -31,6 +31,9 @@ typedef struct /*_XDATA*/ {
 #define DMX_CHANNELS 16
 typedef struct /*XLASER_CFG*/ {
 	uint16_t dmx_address;
+	uint8_t dmx_channels[DMX_CHANNELS];
+	uint8_t art_net;
+	uint8_t art_subUni;
 	bool windowed;
 	unsigned window_width;
 	unsigned window_height;
@@ -42,7 +45,6 @@ typedef struct /*XLASER_CFG*/ {
 	char* window_name;
 	bool double_buffer;
 	int sockfd;
-	uint8_t dmx_channels[DMX_CHANNELS];
 	//char* backgnd_image;
 	//char** gobos;
 	//chanmap?
