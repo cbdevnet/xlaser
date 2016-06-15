@@ -42,6 +42,55 @@ int config_bindhost(const char* category, char* key, char* value, EConfig* econf
 	return 0;
 }
 
+int config_windowed(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+
+	int b = econfig_getBoolean(value);
+
+	printf("windowed?: %d\n", b);
+
+	if (b < 0) {
+		return 1;
+	}
+
+	config->windowed = (bool) b;
+
+	return 0;
+}
+
+int config_width(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	config->window_width = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
+int config_height(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	config->window_height = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
+int config_x_offset(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	config->x_offset = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
+int config_y_offset(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	config->y_offset = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
 int parse_config(CONFIG* config, char* filepath) {
 
 	EConfig* econfig = econfig_init(filepath, config);
@@ -49,6 +98,7 @@ int parse_config(CONFIG* config, char* filepath) {
 	unsigned artNetCat = econfig_addCategory(econfig, "artnet");
 	unsigned dmxCat = econfig_addCategory(econfig, "dmx");
 	unsigned genCat = econfig_addCategory(econfig, "general");
+	unsigned windowCat = econfig_addCategory(econfig, "window");
 
 	econfig_addParam(econfig, artNetCat, "net", config_artNet);
 	econfig_addParam(econfig, artNetCat, "subuni", config_artSubUni);
@@ -57,6 +107,12 @@ int parse_config(CONFIG* config, char* filepath) {
 	econfig_addParam(econfig, dmxCat, "address", config_dmxAddress);
 
 	econfig_addParam(econfig, genCat, "bindhost", config_bindhost);
+
+	econfig_addParam(econfig, windowCat, "windowed", config_windowed);
+	econfig_addParam(econfig, windowCat, "width", config_width);
+	econfig_addParam(econfig, windowCat, "height", config_height);
+	econfig_addParam(econfig, windowCat, "x_offset", config_x_offset);
+	econfig_addParam(econfig, windowCat, "y_offset", config_y_offset);
 
 	econfig_parse(econfig);
 	econfig_free(econfig);
