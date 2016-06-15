@@ -48,6 +48,21 @@ int artnet_output_handler(CONFIG* config, char* buf) {
 	printf("data length: %d\n", art->length);
 	/* print_dmx_output(art->data, art->length) */
 
+
+	if (config->dmx_address + DMX_CHANNELS > art->length) {
+		fprintf(stderr, "dmx_address is too high for received data\n");
+		return -1;
+	}
+	printf("dmx_address: %d\n", config->dmx_address);
+
+	if (config->dmx_address == 0) {
+		config->dmx_address = 1;
+	}
+
+	memcpy(config->dmx_channels, art->data + config->dmx_address - 1, DMX_CHANNELS);
+
+	print_dmx_output(config->dmx_channels, DMX_CHANNELS);
+
 	return 0;
 }
 
@@ -75,7 +90,7 @@ int artnet_handler(CONFIG* config) {
 	}
 
 	printf("Found artnet package :)\n");
-	printf("protVerHi: %d\n protVerLo: %d\n", art->protVerHi, art->protVerLo);
+	printf("protVerHi: %d\nprotVerLo: %d\n", art->protVerHi, art->protVerLo);
 
 	char* opcode_str;
 	switch(art->opcode) {
