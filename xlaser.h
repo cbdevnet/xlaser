@@ -61,7 +61,8 @@ typedef struct /*XLASER_CFG*/ {
 // Focus
 // Rotation Abs
 // Rotation Speed
-
+#include "easy_config.h"
+#include "easy_config.c"
 #include "network.h"
 #include "artnet.h"
 #include "artnet.c"

@@ -3,12 +3,69 @@
 int usage(char* fn){
 	printf("xlaser - Whatever\n");
 	printf("Usage:\n");
-	printf("\t%s <dmx address> <bindhost>", fn);
+	printf("\t%s <path to config file>", fn);
 	return EXIT_FAILURE;
 }
 
+int config_artSubUni(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	config->art_subUni = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
+int config_dmxAddress(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+	CONFIG* config = (CONFIG*) user_param;
+
+	config->dmx_address = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
+int config_artNet(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+
+	config->art_net = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
+int config_bindhost(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+
+	config->bindhost = malloc(strlen(value) + 1);
+	strncpy(config->bindhost, value, strlen(value) + 1);
+
+	return 0;
+}
+
+int parse_config(CONFIG* config, char* filepath) {
+
+	EConfig* econfig = econfig_init(filepath, config);
+
+	unsigned artNetCat = econfig_addCategory(econfig, "artnet");
+	unsigned dmxCat = econfig_addCategory(econfig, "dmx");
+	unsigned genCat = econfig_addCategory(econfig, "general");
+
+	econfig_addParam(econfig, artNetCat, "net", config_artNet);
+	econfig_addParam(econfig, artNetCat, "subuni", config_artSubUni);
+
+
+	econfig_addParam(econfig, dmxCat, "address", config_dmxAddress);
+
+	econfig_addParam(econfig, genCat, "bindhost", config_bindhost);
+
+	econfig_parse(econfig);
+	econfig_free(econfig);
+
+	return 0;
+}
+
 int main(int argc, char** argv){
-	if(argc < 3){
+	if(argc < 2){
 		exit(usage(argv[0]));
 	}
 
@@ -18,9 +75,14 @@ int main(int argc, char** argv){
 		.window_name = "xlaser",
 		.bindhost = "*"
 	};
+
+	config.bindhost = malloc(2);
+	config.bindhost[0] = '*';
+	config.bindhost[1] = 0;
+
 	XRESOURCES xres = {};
 
-	//TODO parse arguments & config file
+	parse_config(&config, argv[1]);
 	//TODO sanity check config
 	//TODO set up signal handlers
 
@@ -40,6 +102,7 @@ int main(int argc, char** argv){
 	xlaser(&xres, &config);
 
 	//TODO cleanup
+	free(config.bindhost);
 
 	return 0;
 }
