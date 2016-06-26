@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <signal.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 //#include <unistd.h>
 //#include <fcntl.h>
 //#include <ctype.h>
@@ -28,6 +30,14 @@ typedef struct /*_XDATA*/ {
 	X_FDS xfds;
 } XRESOURCES;
 
+typedef struct /*_GOBO*/ {
+	int width;
+	int height;
+	int components;
+	XImage* ximage;
+	uint8_t* data;
+} GOBO_IMG;
+
 #define DMX_CHANNELS 16
 typedef struct /*XLASER_CFG*/ {
 	uint16_t dmx_address;
@@ -43,21 +53,22 @@ typedef struct /*XLASER_CFG*/ {
 	unsigned ymax;
 	char* bindhost;
 	char* window_name;
+	char* gobo_prefix;
 	bool double_buffer;
 	int sockfd;
+	GOBO_IMG gobo[255];
 	//char* backgnd_image;
-	//char** gobos;
 	//chanmap?
 } CONFIG;
 
 
 // CHANNELS
-// X 16bit
-// Y 16bit
-// R G B 24bit
-// Dimmer
-// Shutter
-// Gobo
+// X 16bit		0 1
+// Y 16bit		2 3
+// R G B 24bit		4 5 6
+// Dimmer		7
+// Shutter		8
+// Gobo 		9
 // Focus
 // Rotation Abs
 // Rotation Speed

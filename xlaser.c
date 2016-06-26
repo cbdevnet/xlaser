@@ -129,12 +129,10 @@ int main(int argc, char** argv){
 		.dmx_address = 16,
 		.windowed = false,
 		.window_name = "xlaser",
-		.bindhost = "*"
+		.bindhost = strdup("*"),
+		.gobo_prefix = strdup("gobos/"),
+		.gobo = {}
 	};
-
-	config.bindhost = malloc(2);
-	config.bindhost[0] = '*';
-	config.bindhost[1] = 0;
 
 	XRESOURCES xres = {};
 
@@ -159,6 +157,7 @@ int main(int argc, char** argv){
 
 	//TODO cleanup
 	free(config.bindhost);
+	free(config.gobo_prefix);
 
 	return 0;
 }

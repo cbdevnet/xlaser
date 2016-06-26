@@ -6,6 +6,8 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	int xdbe_major, xdbe_minor;
 	XTextProperty window_name;
 	pid_t pid = getpid();
+	unsigned u;
+	char* gobo_path = NULL;
 
 	//allocate some structures
 	XSizeHints* size_hints = XAllocSizeHints();
@@ -27,6 +29,8 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 		XFree(class_hints);
 		return -1;
 	}
+
+	//XSynchronize(res->display, True);
 
 	config->double_buffer = (XdbeQueryExtension(res->display, &xdbe_major, &xdbe_minor) != 0);
 	res->screen = DefaultScreen(res->display);
@@ -100,5 +104,35 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 		return -1;
 	}
 
+	//FIXME TODO this whole section needs error checks
+	
+	XVisualInfo vinfo;
+	if(!XMatchVisualInfo(res->display, res->screen, 32, TrueColor, &vinfo)) {
+		fprintf(stderr, "Display visual info mismatch\n");
+		return -1;
+	}
+
+	gobo_path = calloc(strlen(config->gobo_prefix) + 8, sizeof(char));
+	if(!gobo_path){
+		fprintf(stderr, "Failed to allocate memory for gobo search path\n");
+	}
+	strcpy(gobo_path, config->gobo_prefix);
+
+	for(u = 0; u < 256; u++){
+		snprintf(gobo_path + strlen(config->gobo_prefix), 7, "%d.png", u);
+		config->gobo[u].data = stbi_load(gobo_path, &(config->gobo[u].width), &(config->gobo[u].height), &(config->gobo[u].components), 4);
+
+		if(config->gobo[u].data){
+			fprintf(stderr, "Gobo %d: %s %dx%d @ %d\n", u, gobo_path, config->gobo[u].width, config->gobo[u].height, config->gobo[u].components);
+			//config->gobo[u].ximage = XCreateImage(res->display, vinfo.visual, vinfo.depth, ZPixmap, 0, (char*)config->gobo[u].data, config->gobo[u].width, config->gobo[u].height, 32, 0);
+			config->gobo[u].ximage = XCreateImage(res->display, DefaultVisual(res->display, res->screen), DefaultDepth(res->display, res->screen), ZPixmap, 0, (char*)config->gobo[u].data, config->gobo[u].width, config->gobo[u].height, 32, 0);
+			if(!config->gobo[u].ximage){
+				fprintf(stderr, "Failed to create XImage for gobo %d\n", u);
+				return -1;
+			}
+		}
+	}
+
+	//TODO stbi_image_free
 	return 0;
 }
