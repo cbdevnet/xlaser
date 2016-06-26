@@ -1,0 +1,3 @@
+Create pixmap the size of the window filled with R G B color
+Create XRenderPictures from Colormap, Window and Mask
+Composite backing pixmap and window using mask
