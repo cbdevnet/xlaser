@@ -105,6 +105,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					//XRenderFillRectangle(xres->display, PictOpOver, back_buffer, &render_color, 400, 200, 50, 50);
 					//XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 
+					//flood-fill the color pixmap TODO benchmark XFillRectangle vs XRenderFillRectangle
 					//XFillRectangle(xres->display, color_pixmap, debug_gc, 0, 0, window_width, window_height);
 					XRenderFillRectangle(xres->display, PictOpSrc, color_buffer, &render_color, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					XPutImage(xres->display, gobo_pixmap, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
