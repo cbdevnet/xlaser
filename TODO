@@ -5,3 +5,4 @@ Respect scale for position adjustment
 Respect dimmer channel
 Implement strobing for shutter channel
 Implement rotation speed
+Fine-tune the need for flood-filling the color buffer / compositing the gobo (most updates only concern the position)
