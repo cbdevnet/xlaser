@@ -91,6 +91,21 @@ int config_y_offset(const char* category, char* key, char* value, EConfig* econf
 	return 0;
 }
 
+int config_gobo_folder(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	unsigned len = strlen(value);
+
+	config->gobo_prefix = malloc(len + 2);
+	strncpy(config->gobo_prefix, value, len + 1);
+
+	// add trailing slash if not found.
+	if (value[len - 1] != '/') {
+		config->gobo_prefix[len] = '/';
+	}
+	config->gobo_prefix[len + 1] = 0;
+	return 0;
+}
 int parse_config(CONFIG* config, char* filepath) {
 
 	EConfig* econfig = econfig_init(filepath, config);
@@ -107,6 +122,7 @@ int parse_config(CONFIG* config, char* filepath) {
 	econfig_addParam(econfig, dmxCat, "address", config_dmxAddress);
 
 	econfig_addParam(econfig, genCat, "bindhost", config_bindhost);
+	econfig_addParam(econfig, genCat, "gobos", config_gobo_folder);
 
 	econfig_addParam(econfig, windowCat, "windowed", config_windowed);
 	econfig_addParam(econfig, windowCat, "width", config_width);
