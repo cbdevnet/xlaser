@@ -112,14 +112,14 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 		return -1;
 	}
 
-	gobo_path = calloc(strlen(config->gobo_prefix) + 8, sizeof(char));
+	gobo_path = calloc(strlen(config->gobo_prefix) + 9, sizeof(char));
 	if(!gobo_path){
 		fprintf(stderr, "Failed to allocate memory for gobo search path\n");
 	}
 	strcpy(gobo_path, config->gobo_prefix);
 
 	for(u = 0; u < 256; u++){
-		snprintf(gobo_path + strlen(config->gobo_prefix), 7, "%d.png", u);
+		snprintf(gobo_path + strlen(config->gobo_prefix), 8, "%d.png", u);
 		config->gobo[u].data = stbi_load(gobo_path, &(config->gobo[u].width), &(config->gobo[u].height), &(config->gobo[u].components), 4);
 
 		if(config->gobo[u].data){
@@ -130,6 +130,9 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 				fprintf(stderr, "Failed to create XImage for gobo %d\n", u);
 				return -1;
 			}
+		}
+		else{
+			fprintf(stderr, "Failed to load %s\n", gobo_path);
 		}
 	}
 
