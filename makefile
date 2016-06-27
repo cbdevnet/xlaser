@@ -3,7 +3,7 @@ export DOCDIR?=$(DESTDIR)$(PREFIX)/share/man/man1
 
 .PHONY: all clean
 CFLAGS?=-g -Wall #$(shell freetype-config --cflags)
-LDLIBS?=-lm -lXext -lX11 #$(shell freetype-config --libs) -lXft
+LDLIBS?=-lm -lXext -lX11 -lXrender #$(shell freetype-config --libs) -lXft
 
 all: xlaser xlaser.1.gz
 

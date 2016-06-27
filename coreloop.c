@@ -6,17 +6,26 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 	XEvent event;
 	XdbeSwapInfo swap_info;
 	int window_width, window_height;
+	XColor rgb_color;
+	Pixmap alpha_pixmap;
 
-	/*XGCValues debug_gc_values = {
+	XGCValues debug_gc_values = {
 		.foreground = WhitePixel(xres->display, xres->screen),
 		.background = BlackPixel(xres->display, xres->screen)
 	};
-	GC debug_gc = XCreateGC(xres->display, xres->back_buffer, GCForeground | GCBackground, &debug_gc_values);*/
+	GC debug_gc = XCreateGC(xres->display, xres->back_buffer, GCForeground | GCBackground, &debug_gc_values);
 	unsigned x_pos, y_pos;
 	uint8_t selected_gobo;
 
 	window_width = DisplayWidth(xres->display, xres->screen);
 	window_height = DisplayHeight(xres->display, xres->screen);
+
+	//FIXME do this in x11 init?
+	alpha_pixmap = XCreatePixmap(xres->display, xres->back_buffer, window_width, window_height, 32);
+	if(!alpha_pixmap){
+		fprintf(stderr, "Failed to create alpha pixmap\n");
+		return -1;
+	}
 
 	char* display_buffer = NULL;
 	char pressed_key;
@@ -45,15 +54,27 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 						fprintf(stderr, "No gobo selection possible\n");
 						break;
 					}
+
+					rgb_color.red = config->dmx_channels[RED] << 8;
+					rgb_color.green = config->dmx_channels[GREEN] << 8;
+					rgb_color.blue = config->dmx_channels[BLUE] << 8;
+
+					//FIXME XAllocColor might be slow, if this becomes a problem just do the conversion manually
+					XAllocColor(xres->display, DefaultColormap(xres->display, xres->screen), &rgb_color);
+
+					debug_gc_values.foreground = rgb_color.pixel;
+					XChangeGC(xres->display, debug_gc, GCForeground, &debug_gc_values);
 					
-					fprintf(stderr, "Using gobo %d\n", selected_gobo);
+					fprintf(stderr, "Using gobo %d, pixel color is %06X\n", selected_gobo, rgb_color.pixel);
 					x_pos = ((float)((config->dmx_channels[PAN] << 8) | config->dmx_channels[PAN_FINE])/65535.0) * (window_width - config->gobo[selected_gobo].width);
 					y_pos = ((float)((config->dmx_channels[TILT] << 8) | config->dmx_channels[TILT_FINE])/65535.0) * (window_height - config->gobo[selected_gobo].height);
 					fprintf(stderr, "PAN/FINE: %d/%d, W: %d, X: %d\n", config->dmx_channels[PAN], config->dmx_channels[PAN_FINE], window_width, x_pos);
 					fprintf(stderr, "TILT/FINE: %d/%d, H: %d, Y: %d\n", config->dmx_channels[TILT], config->dmx_channels[TILT_FINE], window_height, y_pos);
 
-					//XDrawRectangle(xres->display, xres->back_buffer, debug_gc, 200, 200, 50, 50);
-					XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					XFillRectangle(xres->display, xres->back_buffer, debug_gc, 200, 200, 50, 50);
+					//XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					XPutImage(xres->display, alpha_pixmap, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					//XPutImage(xres->display, xres->back_buffer, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 
 					if(config->double_buffer){
 						fprintf(stderr, "Swapping buffers\n");

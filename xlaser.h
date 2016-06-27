@@ -16,6 +16,7 @@
 #include <X11/Xutil.h>
 //#include <X11/Xft/Xft.h>
 #include <X11/extensions/Xdbe.h>
+#include <X11/extensions/Xrender.h>
 
 #include "xfds.h"
 
@@ -28,6 +29,7 @@ typedef struct /*_XDATA*/ {
 	XdbeBackBuffer back_buffer;
 	Atom wm_delete;
 	X_FDS xfds;
+	Colormap colormap;
 } XRESOURCES;
 
 typedef struct /*_GOBO*/ {
