@@ -89,7 +89,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					render_color.red = config->dmx_channels[RED] << 8;
 					render_color.green = config->dmx_channels[GREEN] << 8;
 					render_color.blue = config->dmx_channels[BLUE] << 8;
-					render_color.alpha = 0;
+					render_color.alpha = 0xFFFF;
 
 					XAllocColor(xres->display, xres->colormap, &rgb_color);
 					debug_gc_values.foreground = rgb_color.pixel;
@@ -102,10 +102,11 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					fprintf(stderr, "TILT/FINE: %d/%d, H: %d, Y: %d\n", config->dmx_channels[TILT], config->dmx_channels[TILT_FINE], window_height, y_pos);
 
 					//XFillRectangle(xres->display, xres->back_buffer, debug_gc, 200, 200, 50, 50);
+					//XRenderFillRectangle(xres->display, PictOpOver, back_buffer, &render_color, 400, 200, 50, 50);
 					//XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 
-					//FIXME maybe do this with xrender directly
-					XFillRectangle(xres->display, color_pixmap, debug_gc, 0, 0, window_width, window_height);
+					//XFillRectangle(xres->display, color_pixmap, debug_gc, 0, 0, window_width, window_height);
+					XRenderFillRectangle(xres->display, PictOpSrc, color_buffer, &render_color, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					XPutImage(xres->display, gobo_pixmap, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					//XPutImage(xres->display, xres->back_buffer, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 
@@ -120,30 +121,23 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 						XClearWindow(xres->display, xres->main);
 					}
 
-					if(config->dmx_channels[ZOOM] || config->dmx_channels[ROTATION]){
-						if(config->dmx_channels[ZOOM]){
-							transform.matrix[2][2] = XDoubleToFixed((double)(256 - config->dmx_channels[ZOOM])/255.0);
-						}
+					transform.matrix[2][2] = XDoubleToFixed((double)(256 - config->dmx_channels[ZOOM])/255.0);
 
-						if(config->dmx_channels[ROTATION]){
-							double angle = M_PI / 180 * ((double)(config->dmx_channels[ROTATION])/255.0) * 360;
-							double angle_sin = sin(angle);
-							double angle_cos = cos(angle);
-							transform.matrix[0][0] = angle_cos;
-							transform.matrix[0][1] = angle_sin;
-							transform.matrix[1][0] = -angle_sin;
-							transform.matrix[1][1] = angle_cos;
-						}
+					double angle = M_PI / 180 * ((double)(config->dmx_channels[ROTATION])/255.0) * 360;
+					double angle_sin = sin(angle);
+					double angle_cos = cos(angle);
+					transform.matrix[0][0] = XDoubleToFixed(angle_cos);
+					transform.matrix[0][1] = XDoubleToFixed(angle_sin);
+					transform.matrix[1][0] = XDoubleToFixed(-angle_sin);
+					transform.matrix[1][1] = XDoubleToFixed(angle_cos);
 
-						XRenderSetPictureTransform(xres->display, alpha_mask, &transform);
-						XRenderSetPictureTransform(xres->display, color_buffer, &transform);
-					}
-
+					//XRenderSetPictureTransform(xres->display, alpha_mask, &transform);
+					XRenderSetPictureTransform(xres->display, color_buffer, &transform);
 
 					//XRenderComposite(xres->display, PictOpOver, color_buffer, alpha_mask, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
-					//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 400, 200, 50, 50);
+					//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
 					break;
 
 				case KeyPress:

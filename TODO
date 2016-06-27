@@ -1,3 +1,5 @@
-Create pixmap the size of the window filled with R G B color
-Create XRenderPictures from Colormap, Window and Mask
-Composite backing pixmap and window using mask
+Composite to back buffer instead of window buffer
+Add translation to rotation
+Scale about center
+Repect scale for position adjustment
+
