@@ -1,6 +1,4 @@
 Composite to back buffer instead of window buffer
-Add translation to rotation
-Scale about center
 Respect scale for position adjustment
 Respect dimmer channel
 Implement strobing for shutter channel

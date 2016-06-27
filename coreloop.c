@@ -122,15 +122,35 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 						XClearWindow(xres->display, xres->main);
 					}
 
-					transform.matrix[2][2] = XDoubleToFixed((double)(256 - config->dmx_channels[ZOOM])/255.0);
+					double scaling_factor = (double)(256 - config->dmx_channels[ZOOM])/255.0;
+					if(scaling_factor > 1.0f){
+						scaling_factor = 1.0f;
+					}
+					fprintf(stderr, "Scaling factor %f\n", scaling_factor);
+
+					transform.matrix[2][2] = XDoubleToFixed(scaling_factor);
 
 					double angle = M_PI / 180 * ((double)(config->dmx_channels[ROTATION])/255.0) * 360;
 					double angle_sin = sin(angle);
 					double angle_cos = cos(angle);
+					fprintf(stderr, "Current angle %f, sine %f, cosine %f\n", angle, angle_sin, angle_cos);
+
 					transform.matrix[0][0] = XDoubleToFixed(angle_cos);
 					transform.matrix[0][1] = XDoubleToFixed(angle_sin);
 					transform.matrix[1][0] = XDoubleToFixed(-angle_sin);
 					transform.matrix[1][1] = XDoubleToFixed(angle_cos);
+
+					double center_x = (double)config->gobo[selected_gobo].width/2.0;
+					double center_y = (double)config->gobo[selected_gobo].height/2.0;
+					fprintf(stderr, "Centering offset %f:%f\n", center_x, center_y);
+
+					double transform_x = -center_x * angle_cos + -center_y * angle_sin + scaling_factor * center_x;
+					double transform_y = center_x * angle_sin + -center_y * angle_cos + scaling_factor * center_y;
+
+					transform.matrix[0][2] = XDoubleToFixed(transform_x);
+					transform.matrix[1][2] = XDoubleToFixed(transform_y);
+
+					fprintf(stderr, "Current transform: %d:%d fixed, %f:%f float\n", transform.matrix[0][2], transform.matrix[1][2], transform_x, transform_y);
 
 					//XRenderSetPictureTransform(xres->display, alpha_mask, &transform);
 					XRenderSetPictureTransform(xres->display, color_buffer, &transform);
