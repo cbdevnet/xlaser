@@ -61,17 +61,22 @@ typedef struct /*XLASER_CFG*/ {
 	//chanmap?
 } CONFIG;
 
+enum /*DMX_CHANNEL*/ {
+	PAN = 0,
+	PAN_FINE = 1,
+	TILT = 2,
+	TILT_FINE = 3,
+	RED = 4,
+	GREEN = 5,
+	BLUE = 6,
+	DIMMER = 7,
+	SHUTTER = 8,
+	GOBO = 9,
+	ZOOM = 10,
+	ROTATION = 11,
+	ROTATION_SPEED = 12
+};
 
-// CHANNELS
-// X 16bit		0 1
-// Y 16bit		2 3
-// R G B 24bit		4 5 6
-// Dimmer		7
-// Shutter		8
-// Gobo 		9
-// Focus
-// Rotation Abs
-// Rotation Speed
 #include "easy_config.h"
 #include "easy_config.c"
 #include "network.h"

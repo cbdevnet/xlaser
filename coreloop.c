@@ -38,7 +38,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					fprintf(stderr, "Expose message, initiating redraw\n");
 
 					//FIXME this might loop
-					for(selected_gobo = config->dmx_channels[9]; !(config->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
+					for(selected_gobo = config->dmx_channels[GOBO]; !(config->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
 					}
 
 					if(!(config->gobo[selected_gobo].data)){
@@ -46,11 +46,11 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 						break;
 					}
 					
-					fprintf(stderr, "Using gobo %d with data ptr %X\n", selected_gobo, config->gobo[selected_gobo].data);
-					x_pos = ((float)((config->dmx_channels[0] << 8) | config->dmx_channels[1])/65535.0) * (window_width - config->gobo[selected_gobo].width);
-					y_pos = ((float)((config->dmx_channels[2] << 8) | config->dmx_channels[3])/65535.0) * (window_height - config->gobo[selected_gobo].height);
-					fprintf(stderr, "CH 0/1: %d/%d, W: %d, X: %d\n", config->dmx_channels[0], config->dmx_channels[1], window_width, x_pos);
-					fprintf(stderr, "CH 2/3: %d/%d, H: %d, Y: %d\n", config->dmx_channels[2], config->dmx_channels[3], window_height, y_pos);
+					fprintf(stderr, "Using gobo %d\n", selected_gobo);
+					x_pos = ((float)((config->dmx_channels[PAN] << 8) | config->dmx_channels[PAN_FINE])/65535.0) * (window_width - config->gobo[selected_gobo].width);
+					y_pos = ((float)((config->dmx_channels[TILT] << 8) | config->dmx_channels[TILT_FINE])/65535.0) * (window_height - config->gobo[selected_gobo].height);
+					fprintf(stderr, "PAN/FINE: %d/%d, W: %d, X: %d\n", config->dmx_channels[PAN], config->dmx_channels[PAN_FINE], window_width, x_pos);
+					fprintf(stderr, "TILT/FINE: %d/%d, H: %d, Y: %d\n", config->dmx_channels[TILT], config->dmx_channels[TILT_FINE], window_height, y_pos);
 
 					//XDrawRectangle(xres->display, xres->back_buffer, debug_gc, 200, 200, 50, 50);
 					XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
