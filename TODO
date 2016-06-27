@@ -1,5 +1,7 @@
 Composite to back buffer instead of window buffer
 Add translation to rotation
 Scale about center
-Repect scale for position adjustment
-
+Respect scale for position adjustment
+Respect dimmer channel
+Implement strobing for shutter channel
+Implement rotation speed
