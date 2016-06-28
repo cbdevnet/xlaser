@@ -18,6 +18,11 @@ int config_artSubUni(const char* category, char* key, char* value, EConfig* econ
 int config_dmxAddress(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
 	CONFIG* config = (CONFIG*) user_param;
 
+	// if the address is set by commandline argument.
+	if (config->dmx_address > 0) {
+		return 0;
+	}
+
 	config->dmx_address = strtoul(value, NULL, 10);
 
 	return 0;
@@ -136,13 +141,35 @@ int parse_config(CONFIG* config, char* filepath) {
 	return 0;
 }
 
-int main(int argc, char** argv){
-	if(argc < 2){
-		exit(usage(argv[0]));
+
+int setDMXAddress(int argc, char** argv, CONFIG* config) {
+	config->dmx_address = strtoul(argv[1], NULL, 10);
+
+	if (config->dmx_address == 0) {
+		return -1;
 	}
 
+	return 0;
+}
+
+int getHelp() {
+	exit(usage("xlaser"));
+
+	return 0;
+}
+
+int parse_args(CONFIG* config, int argc, char** argv, char** output) {
+
+	eargs_addArgument("-d", "--dmx", setDMXAddress, 1);
+	eargs_addArgument("-h", "--help", getHelp, 0);
+
+	return eargs_parse(argc, argv, output, config);
+}
+
+int main(int argc, char** argv){
+
 	CONFIG config = {
-		.dmx_address = 16,
+		.dmx_address = -1,
 		.windowed = false,
 		.window_name = "xlaser",
 		.bindhost = strdup("*"),
@@ -152,7 +179,23 @@ int main(int argc, char** argv){
 
 	XRESOURCES xres = {};
 
-	parse_config(&config, argv[1]);
+	char* output[argc];
+
+	int outc = parse_args(&config, argc, argv, output);
+
+	if (outc < 0) {
+		fprintf(stderr, "Error in parsing commandline arguments.\n");
+		exit(usage(argv[0]));
+	} else if(outc < 1){
+		fprintf(stderr, "We need a config path.\n");
+		exit(usage(argv[0]));
+	}
+
+	parse_config(&config, output[0]);
+
+	if (config.dmx_address < 0) {
+		config.dmx_address = 1;
+	}
 	//TODO sanity check config
 	//TODO set up signal handlers
 

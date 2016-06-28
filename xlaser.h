@@ -81,6 +81,8 @@ enum /*DMX_CHANNEL*/ {
 
 #include "easy_config.h"
 #include "easy_config.c"
+#include "easy_args.h"
+#include "easy_args.c"
 #include "network.h"
 #include "artnet.h"
 #include "artnet.c"
