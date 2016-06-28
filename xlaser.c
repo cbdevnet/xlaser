@@ -169,7 +169,7 @@ int parse_args(CONFIG* config, int argc, char** argv, char** output) {
 int main(int argc, char** argv){
 
 	CONFIG config = {
-		.dmx_address = -1,
+		.dmx_address = 0,
 		.windowed = false,
 		.window_name = "xlaser",
 		.bindhost = strdup("*"),
@@ -193,7 +193,7 @@ int main(int argc, char** argv){
 
 	parse_config(&config, output[0]);
 
-	if (config.dmx_address < 0) {
+	if (config.dmx_address == 0) {
 		config.dmx_address = 1;
 	}
 	//TODO sanity check config
