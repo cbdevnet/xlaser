@@ -118,6 +118,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					//flood-fill the color pixmap TODO benchmark XFillRectangle vs XRenderFillRectangle
 					//XFillRectangle(xres->display, color_pixmap, debug_gc, 0, 0, window_width, window_height);
 					XRenderFillRectangle(xres->display, PictOpSrc, color_buffer, &render_color, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+
 					XPutImage(xres->display, gobo_pixmap, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					//XPutImage(xres->display, xres->back_buffer, debug_gc, config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 
@@ -156,12 +157,13 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 
 					fprintf(stderr, "Current transform: %d:%d fixed, %f:%f float\n", transform.matrix[0][2], transform.matrix[1][2], transform_x, transform_y);
 
-					//XRenderSetPictureTransform(xres->display, alpha_mask, &transform);
+					XRenderSetPictureTransform(xres->display, alpha_mask, &transform);
+					//XRenderSetPictureTransform(xres->display, color_buffer, &transform);
 
-					//XRenderComposite(xres->display, PictOpOver, color_buffer, alpha_mask, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
-					XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
-					XRenderSetPictureTransform(xres->display, color_buffer, &transform);
-					XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					XRenderComposite(xres->display, PictOpOver, color_buffer, alpha_mask, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					//XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					//XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+
 					//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
 					break;
 
