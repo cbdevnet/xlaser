@@ -76,6 +76,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					//FIXME this might loop
 					for(selected_gobo = config->dmx_channels[GOBO]; !(config->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
 					}
+					fprintf(stderr, "Using gobo %d\n", selected_gobo);
 
 					if(!(config->gobo[selected_gobo].data)){
 						fprintf(stderr, "No gobo selection possible\n");
@@ -95,12 +96,21 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					debug_gc_values.foreground = rgb_color.pixel;
 					XChangeGC(xres->display, debug_gc, GCForeground, &debug_gc_values);
 					
-					fprintf(stderr, "Using gobo %d\n", selected_gobo);
-					x_pos = ((float)((config->dmx_channels[PAN] << 8) | config->dmx_channels[PAN_FINE])/65535.0) * (window_width - config->gobo[selected_gobo].width);
-					y_pos = ((float)((config->dmx_channels[TILT] << 8) | config->dmx_channels[TILT_FINE])/65535.0) * (window_height - config->gobo[selected_gobo].height);
+					double scaling_factor = (double)(256 - config->dmx_channels[ZOOM]) / 255.0;
+					if(scaling_factor > 1.0f){
+						scaling_factor = 1.0f;
+					}
+					fprintf(stderr, "Scaling factor %f\n", scaling_factor);
+					
+					x_pos = ((float)((config->dmx_channels[PAN] << 8) | config->dmx_channels[PAN_FINE]) / 65535.0) * ((double)window_width - ((double)config->gobo[selected_gobo].width * scaling_factor));
+					y_pos = ((float)((config->dmx_channels[TILT] << 8) | config->dmx_channels[TILT_FINE]) / 65535.0) * ((double)window_height - ((double)config->gobo[selected_gobo].height * scaling_factor));
 					fprintf(stderr, "PAN/FINE: %d/%d, W: %d, X: %d\n", config->dmx_channels[PAN], config->dmx_channels[PAN_FINE], window_width, x_pos);
 					fprintf(stderr, "TILT/FINE: %d/%d, H: %d, Y: %d\n", config->dmx_channels[TILT], config->dmx_channels[TILT_FINE], window_height, y_pos);
 
+					x_pos -= (double)(config->gobo[selected_gobo].width - ((double)config->gobo[selected_gobo].width * scaling_factor)) / 2.0;
+					y_pos -= (double)(config->gobo[selected_gobo].height - ((double)config->gobo[selected_gobo].height * scaling_factor)) / 2.0;
+
+					fprintf(stderr, "Corrected position %d:%d\n", x_pos, y_pos);
 					//XFillRectangle(xres->display, xres->back_buffer, debug_gc, 200, 200, 50, 50);
 					//XRenderFillRectangle(xres->display, PictOpOver, back_buffer, &render_color, 400, 200, 50, 50);
 					//XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), config->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
@@ -122,15 +132,9 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 						XClearWindow(xres->display, xres->main);
 					}
 
-					double scaling_factor = (double)(256 - config->dmx_channels[ZOOM])/255.0;
-					if(scaling_factor > 1.0f){
-						scaling_factor = 1.0f;
-					}
-					fprintf(stderr, "Scaling factor %f\n", scaling_factor);
-
 					transform.matrix[2][2] = XDoubleToFixed(scaling_factor);
 
-					double angle = M_PI / 180 * ((double)(config->dmx_channels[ROTATION])/255.0) * 360;
+					double angle = M_PI / 180 * ((double)(config->dmx_channels[ROTATION]) / 255.0) * 360;
 					double angle_sin = sin(angle);
 					double angle_cos = cos(angle);
 					fprintf(stderr, "Current angle %f, sine %f, cosine %f\n", angle, angle_sin, angle_cos);
@@ -140,8 +144,8 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					transform.matrix[1][0] = XDoubleToFixed(-angle_sin);
 					transform.matrix[1][1] = XDoubleToFixed(angle_cos);
 
-					double center_x = (double)config->gobo[selected_gobo].width/2.0;
-					double center_y = (double)config->gobo[selected_gobo].height/2.0;
+					double center_x = (double)config->gobo[selected_gobo].width / 2.0;
+					double center_y = (double)config->gobo[selected_gobo].height / 2.0;
 					fprintf(stderr, "Centering offset %f:%f\n", center_x, center_y);
 
 					double transform_x = -center_x * angle_cos + -center_y * angle_sin + scaling_factor * center_x;
@@ -153,10 +157,10 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					fprintf(stderr, "Current transform: %d:%d fixed, %f:%f float\n", transform.matrix[0][2], transform.matrix[1][2], transform_x, transform_y);
 
 					//XRenderSetPictureTransform(xres->display, alpha_mask, &transform);
-					XRenderSetPictureTransform(xres->display, color_buffer, &transform);
 
 					//XRenderComposite(xres->display, PictOpOver, color_buffer, alpha_mask, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
+					XRenderSetPictureTransform(xres->display, color_buffer, &transform);
 					XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, config->gobo[selected_gobo].width, config->gobo[selected_gobo].height);
 					//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
 					break;
