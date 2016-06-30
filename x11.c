@@ -133,6 +133,8 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	strcpy(gobo_path, config->gobo_prefix);
 
 	for(u = 0; u < 256; u++){
+		config->gobo[u].height = 0;
+		config->gobo[u].width = 0;
 		snprintf(gobo_path + strlen(config->gobo_prefix), 8, "%d.png", u);
 		config->gobo[u].data = stbi_load(gobo_path, &(config->gobo[u].width), &(config->gobo[u].height), &(config->gobo[u].components), 4);
 

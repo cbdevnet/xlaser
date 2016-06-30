@@ -1,9 +1,9 @@
 #include "xlaser.h"
 
 int usage(char* fn){
-	printf("xlaser - Whatever\n");
+	printf("xlaser - ArtNet scanner fixture\n");
 	printf("Usage:\n");
-	printf("\t%s <path to config file>", fn);
+	printf("\t%s <path to config file> [-d <addr> | --dmx <addr> ]\n", fn);
 	return EXIT_FAILURE;
 }
 
@@ -176,7 +176,6 @@ int parse_args(CONFIG* config, int argc, char** argv, char** output) {
 }
 
 int main(int argc, char** argv){
-
 	CONFIG config = {
 		.dmx_address = 0,
 		.windowed = false,
@@ -188,15 +187,14 @@ int main(int argc, char** argv){
 
 	XRESOURCES xres = {};
 
-	char* output[argc];
+	char* invalid_arguments[argc];
+	int invalid_arguments_len = parse_args(&config, argc, argv, invalid_arguments);
 
-	int outc = parse_args(&config, argc, argv, output);
-
-	if (outc < 0) {
-		fprintf(stderr, "Error in parsing commandline arguments.\n");
+	if (invalid_arguments_len < 0) {
+		fprintf(stderr, "Error parsing commandline arguments\n");
 		exit(usage(argv[0]));
-	} else if(outc < 1){
-		fprintf(stderr, "We need a config path.\n");
+	} else if(invalid_arguments_len < 1){
+		fprintf(stderr, "Need at least a configuration file\n");
 		exit(usage(argv[0]));
 	}
 
@@ -205,9 +203,9 @@ int main(int argc, char** argv){
 	if (config.dmx_address == 0) {
 		config.dmx_address = 1;
 	}
+
 	//TODO sanity check config
 	//TODO set up signal handlers
-
 	if(x11_init(&xres, &config) < 0){
 		fprintf(stderr, "Failed to initialize window\n");
 		exit(usage(argv[0]));
