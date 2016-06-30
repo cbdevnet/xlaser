@@ -46,6 +46,7 @@ typedef struct /*XLASER_CFG*/ {
 	uint8_t dmx_channels[DMX_CHANNELS];
 	uint8_t art_net;
 	uint8_t art_subUni;
+	uint8_t art_universe;
 	bool windowed;
 	unsigned window_width;
 	unsigned window_height;

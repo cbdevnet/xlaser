@@ -15,6 +15,14 @@ int config_artSubUni(const char* category, char* key, char* value, EConfig* econ
 	return 0;
 }
 
+int config_artUni(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
+
+	CONFIG* config = (CONFIG*) user_param;
+	config->art_universe = strtoul(value, NULL, 10);
+
+	return 0;
+}
+
 int config_dmxAddress(const char* category, char* key, char* value, EConfig* econfig, void* user_param) {
 	CONFIG* config = (CONFIG*) user_param;
 
@@ -122,6 +130,7 @@ int parse_config(CONFIG* config, char* filepath) {
 
 	econfig_addParam(econfig, artNetCat, "net", config_artNet);
 	econfig_addParam(econfig, artNetCat, "subuni", config_artSubUni);
+	econfig_addParam(econfig, artNetCat, "uni", config_artUni);
 
 
 	econfig_addParam(econfig, dmxCat, "address", config_dmxAddress);
