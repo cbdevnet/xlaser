@@ -4,4 +4,5 @@ Implement strobing for shutter channel
 Implement rotation speed
 Fine-tune the need for flood-filling the color buffer / compositing the gobo (most updates only concern the position)
 Fix pixmap clearing when moving from big to small gobo
-Find out where the wine-red background when scaling comes from
+Mask-repeat for prism?
+Move X11 logic to x11.c

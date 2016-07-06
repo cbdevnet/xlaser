@@ -124,8 +124,6 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	}
 
 	//FIXME TODO this whole section needs error checks
-	
-
 	gobo_path = calloc(strlen(config->gobo_prefix) + 9, sizeof(char));
 	if(!gobo_path){
 		fprintf(stderr, "Failed to allocate memory for gobo search path\n");
@@ -150,6 +148,9 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 		}
 	}
 
+	free(gobo_path);
 	//TODO stbi_image_free
 	return 0;
 }
+
+
