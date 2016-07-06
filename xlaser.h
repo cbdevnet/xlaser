@@ -80,6 +80,8 @@ enum /*DMX_CHANNEL*/ {
 	ROTATION_SPEED = 12
 };
 
+int usage(char* fn);
+
 #include "easy_config.h"
 #include "easy_config.c"
 #include "easy_args.h"
