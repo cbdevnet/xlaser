@@ -22,6 +22,14 @@
 
 volatile sig_atomic_t abort_signaled = 0;
 
+typedef struct /*_GOBO*/ {
+	int width;
+	int height;
+	int components;
+	XImage* ximage;
+	uint8_t* data;
+} GOBO_IMG;
+
 typedef struct /*_XDATA*/ {
 	int screen;
 	Display* display;
@@ -30,15 +38,16 @@ typedef struct /*_XDATA*/ {
 	Atom wm_delete;
 	X_FDS xfds;
 	Colormap colormap;
+	Pixmap gobo_pixmap;
+	Pixmap color_pixmap;
+	Picture composite_buffer;
+	Picture alpha_mask;
+	Picture color_buffer;
+	GC window_gc;
+	unsigned window_width;
+	unsigned window_height;
+	GOBO_IMG gobo[255];
 } XRESOURCES;
-
-typedef struct /*_GOBO*/ {
-	int width;
-	int height;
-	int components;
-	XImage* ximage;
-	uint8_t* data;
-} GOBO_IMG;
 
 #define DMX_CHANNELS 16
 typedef struct /*XLASER_CFG*/ {
@@ -59,7 +68,6 @@ typedef struct /*XLASER_CFG*/ {
 	char* gobo_prefix;
 	bool double_buffer;
 	int sockfd;
-	GOBO_IMG gobo[255];
 	//char* backgnd_image;
 	//chanmap?
 } CONFIG;

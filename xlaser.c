@@ -14,7 +14,6 @@ int main(int argc, char** argv){
 		.window_name = "xlaser",
 		.bindhost = strdup("*"),
 		.gobo_prefix = strdup("gobos/"),
-		.gobo = {}
 	};
 
 	XRESOURCES xres = {};
