@@ -169,7 +169,7 @@ int getHelp() {
 
 int parse_args(CONFIG* config, int argc, char** argv, char** output) {
 
-	eargs_addArgument("-d", "--dmx", setDMXAddress, 1);
+	eargs_addArgumentUnsigned("-d", "--dmx", config->dmxAddress);
 	eargs_addArgument("-h", "--help", getHelp, 0);
 
 	return eargs_parse(argc, argv, output, config);
