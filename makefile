@@ -2,8 +2,8 @@ export PREFIX?=/usr
 export DOCDIR?=$(DESTDIR)$(PREFIX)/share/man/man1
 
 .PHONY: all clean
-CFLAGS?=-g -Wall #$(shell freetype-config --cflags)
-LDLIBS?=-lm -lXext -lX11 -lXrender #$(shell freetype-config --libs) -lXft
+CFLAGS?=-g -Wall
+LDLIBS?=-lm -lXext -lX11 -lXrender
 
 all: xlaser xlaser.1.gz
 
@@ -17,5 +17,5 @@ xlaser.1.gz:
 clean:
 	$(RM) xlaser xlaser.1.gz
 
-displaytest:
-	valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes ./xlaser 16
+run:
+	valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes ./xlaser sample.conf

@@ -9,6 +9,11 @@ int config_dmxAddress(const char* category, char* key, char* value, EConfig* eco
 		return 0;
 	}
 	config->dmx_address = strtoul(value, NULL, 10);
+
+	if (config->dmx_address + DMX_CHANNELS > 512) {
+		fprintf(stderr, "DMX Adress is too high for this fixture (%d + %d > 512).\n", config->dmx_address, DMX_CHANNELS);
+		return 1;
+	}
 	return 0;
 }
 
@@ -65,6 +70,10 @@ int config_gobo_folder(const char* category, char* key, char* value, EConfig* ec
 int arg_address(int argc, char** argv, CONFIG* config){
 	config->dmx_address = strtoul(argv[1], NULL, 10);
 	if (config->dmx_address == 0) {
+		return -1;
+	}
+	if (config->dmx_address + DMX_CHANNELS > 512) {
+		fprintf(stderr, "DMX Adress is too high for this fixture (%d + %d > 512).\n", config->dmx_address, DMX_CHANNELS);
 		return -1;
 	}
 	return 0;
