@@ -40,9 +40,11 @@ typedef struct /*_XDATA*/ {
 	Colormap colormap;
 	Pixmap gobo_pixmap;
 	Pixmap color_pixmap;
+	Pixmap dimmer_pixmap;
 	Picture composite_buffer;
 	Picture alpha_mask;
 	Picture color_buffer;
+	Picture dimmer_mask;
 	GC window_gc;
 	unsigned window_width;
 	unsigned window_height;
