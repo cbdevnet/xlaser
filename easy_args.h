@@ -1,13 +1,14 @@
 #pragma once
+#include <stdbool.h>
 
-/* 
+/*
  * Adds an argument to the parsing list.
  *
- * @param char* argShort 
+ * @param char* argShort
  * 	Short version for the identifier (example: "-d"). NULL value means no checking.
- * @param char* argLong 
+ * @param char* argLong
  * 	Long version of the identifier (example: "--debug"). NULL value means no checking.
- * @param void* func 
+ * @param void* func
  * 	Callback function which will called when one of the identifiers is found.
  *	Signature must be:
  *
@@ -27,6 +28,39 @@
  * 	If there are not enough arguments an error will be printed.
  */
 int eargs_addArgument(char* argShort, char* argLong, void* func, unsigned arguments);
+
+/**
+ * Adds an int argument to the parsing list. The value will be parsed with strtol() with no error checking.
+ * @param char* argShort
+ *  Short version for the identifier (example: "-d"). NULL value means no checking.
+ * @param char* argLong
+ *  Long version of the identifier (example: "--debug"). NULL value means no checking.
+ * @param int* container
+ *  Pointer to the target int.
+ */
+int eargs_addArgumentInt(char* argShort, char* argLong, int* container);
+
+/**
+ * Adds an int argument to the parsing list. The value will be parsed with strtoul() with no error checking.
+ * @param char* argShort
+ *  Short version for the identifier (example: "-d"). NULL value means no checking.
+ * @param char* argLong
+ *  Long version of the identifier (example: "--debug"). NULL value means no checking.
+ * @param unsigned* container
+ *  Pointer to the target unsigned int.
+ */
+int eargs_addArgumentUInt(char* argShort, char* argLong, unsigned* container);
+
+/**
+ * Adds an int argument to the parsing list. The value will be parsed with strtol() with no error checking.
+ * @param char* argShort
+ *  Short version for the identifier (example: "-d"). NULL value means no checking.
+ * @param char* argLong
+ *  Long version of the identifier (example: "--debug"). NULL value means no checking.
+ * @param bool* container
+ *  Pointer to the target boolean.
+ */
+int eargs_addArgumentFlag(char* argShort, char* argLong, bool* container);
 
 /*
  * This method will parse the argument list and writes all arguments in output

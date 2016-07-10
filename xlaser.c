@@ -7,6 +7,12 @@ int usage(char* fn){
 	return EXIT_FAILURE;
 }
 
+int getHelp() {
+	exit(usage("xlaser"));
+
+	return 0;
+}
+
 int main(int argc, char** argv){
 	CONFIG config = {
 		.dmx_address = 0,
