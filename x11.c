@@ -168,8 +168,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	fprintf(stderr, "Creating gobo pixmaps with dimensions %dx%d\n", gobo_max_width, gobo_max_height);
 	res->gobo_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
 	res->color_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
-	res->dimmer_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
-	if(!res->gobo_pixmap || ! res->color_pixmap || !res->dimmer_pixmap){
+	if(!res->gobo_pixmap || ! res->color_pixmap){
 		fprintf(stderr, "Failed to create backing pixmaps\n");
 		return -1;
 	}
@@ -179,7 +178,6 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	res->composite_buffer = XRenderCreatePicture(res->display, res->main, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
 	res->color_buffer = XRenderCreatePicture(res->display, res->color_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
 	res->alpha_mask = XRenderCreatePicture(res->display, res->gobo_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
-	res->dimmer_mask = XRenderCreatePicture(res->display, res->dimmer_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
 	return 0;
 }
 
