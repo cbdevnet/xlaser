@@ -96,21 +96,16 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 		error = select(maxfd + 1, &readfds, NULL, NULL, &tv);
 		if(error > 0){
 			if(FD_ISSET(config->sockfd, &readfds)){
-				fprintf(stderr, "ArtNet Data\n");
 				artnet_handler(config);
 				event.type = Expose;
 				XSendEvent(xres->display, xres->main, False, 0, &event);
 			}
 			else{
-				fprintf(stderr, "X Data\n");
 			}
 		}
 		else if(error < 0){
 			perror("select");
 			abort_signaled = -1;
-		}
-		else{
-			fprintf(stderr, "Nothing\n");
 		}
 	}
 

@@ -1,14 +1,14 @@
 #include "xlaser.h"
 
 int usage(char* fn){
-	printf("xlaser - ArtNet scanner fixture\n");
+	printf("%s - ArtNet scanner fixture\n", XLASER_VERSION);
 	printf("Usage:\n");
 	printf("\t%s <path to config file> [-d <addr> | --dmx <addr> ]\n", fn);
 	return EXIT_FAILURE;
 }
 
 int getHelp() {
-	exit(usage("xlaser"));
+	exit(usage(SHORTNAME));
 
 	return 0;
 }
@@ -23,6 +23,7 @@ int main(int argc, char** argv){
 	};
 
 	XRESOURCES xres = {};
+	printf("%s starting up\n", XLASER_VERSION);
 
 	char* invalid_arguments[argc];
 	int invalid_arguments_len = parse_args(&config, argc, argv, invalid_arguments);

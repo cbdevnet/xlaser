@@ -40,8 +40,9 @@ int udp_listener(char* bindhost, char* port){
 
 		yes = 1;
 		if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (void*)&yes, sizeof(yes)) < 0){
-			fprintf(stderr, "Failed to set SO_REUSEADDR on socket\n");
+			fprintf(stderr, "Failed to set SO_BROADCAST on socket\n");
 		}
+
 		status = bind(fd, addr_it->ai_addr, addr_it->ai_addrlen);
 		if(status < 0){
 			close(fd);

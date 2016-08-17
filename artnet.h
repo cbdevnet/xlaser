@@ -1,6 +1,9 @@
 #pragma once
 
-typedef enum ART_OPCODE {
+#define ART_DEBUG_LINE_LEN 8
+#define ART_INTERNAL_READ_BUFFER 1024
+
+typedef enum /*_ART_OPCODE*/ {
 	ART_OP_POLL = 0x2000, /* This is an ArtPoll Packet, no other data is contained in this UDP packet.*/
 	ART_OP_POLL_REPLY = 0x2100, /* This is an ArtPollReply Packet. It contains device status information.*/
 	ART_OP_DIAG_DATA = 0x2300, /* Diagnostics and data logging packet.*/
@@ -14,20 +17,20 @@ typedef enum ART_OPCODE {
 
 const uint16_t ART_NET_PORT = 0x1936; /* 6454*/
 const uint8_t ART_ID[] = {'A', 'r', 't', '-', 'N', 'e', 't', 0x00};
-const uint8_t PROT_VER_HI = 0;
-const uint8_t PROT_VER_LO = 14;
+const uint8_t ART_PROT_VER_HI = 0;
+const uint8_t ART_PROT_VER_LO = 14;
 
-/* Talk to me bit maski (page 14) */
-typedef enum TALK_TO_ME {
+/* Talk to me bit masks (page 14) */
+typedef enum /*_TALK_TO_ME*/ {
 	TALK_TO_ME_ZERO = 0x01, /* deprecated. */
 	TALK_TO_ME_ONLY = 0x02, /* 1 = Send ArtPollReply whenever Node conditions change.*/
 	TALK_TO_ME_DIAG = 0x04, /* 1 = Send me diagnostics messages.*/
 	TALK_TO_ME_DIAG_BROADCAST = 0x08, /* 1 = Diagnostics messages are unicast (if bit 2) */
 	TALK_TO_ME_VLC = 0x10, /* 1 = Disable VLC transmission.*/
 	TALK_TO_ME_75 = 0xD0 /* Unused, transmit as zero, do not test upon receipt.*/
-} TALK_TO_ME;
+} ART_TALK_TO_ME;
 
-typedef enum NODE_REPORT_CODES {
+typedef enum /*_NODE_REPORT_CODES*/ {
 	RC_DEBUG = 0x0000, /* Booted in debug mode (Only used in development */
 	RC_POWER_OK = 0x0001, /* Power On Tests successful */
 	RC_POWER_FAIL = 0x0002, /* Hardware tests fail at Power On */
@@ -44,9 +47,9 @@ typedef enum NODE_REPORT_CODES {
 	RC_DMX_SHORT = 0x000D, /* DMX output short detected. See GoodOutput field.*/
 	RC_FIRMWARE_FAIL = 0x000E, /* Last attempt to upload new firmware failed. */
 	RC_USER_FAIL = 0x000F /* User changed switch settings when address locked by remote programming. User changes ignored.*/
-} NODE_REPORT_CODES;
+} ART_NODE_REPORT_CODES;
 
-typedef enum ART_STATUS1 {
+typedef enum /*_ART_STATUS1*/ {
 	STATUS1_UBEA = 0x01, /* 1 = UBEA present */
 	STATUS1_RDM = 0x02, /* 1 = Capable of Remote Device Management.*/
 	STATUS1_ROM = 0x04, /* 1 = Booted from ROM.*/
@@ -55,14 +58,14 @@ typedef enum ART_STATUS1 {
 	STATUS1_INDI = 0xC0 /* Indicator state. (page 20).*/
 } ART_STATUS1;
 
-typedef enum ART_STATUS2 { /* see page 24*/
+typedef enum /*_ART_STATUS2*/ { /* see page 24*/
 	STATUS2_WEB = 0x01, /* Set = Product supports web browser configuration.*/
 	STATUS2_DHCP_CONF = 0x02, /*CLR = Node's IP is manually configured.*/
 	STATUS2_DHCP_CAP = 0x04, /* CLR = Node is not DHCP capable.*/
 	STATUS2_ADDRESS = 0x08, /* CLR = Node supports 8bit Port-Address (Art-Net II).*/
 } ART_STATUS2;
 
-typedef enum STYLE_CODES {
+typedef enum /*_ART_STYLE_CODES*/ {
 	ST_NODE = 0x00, /* A DMX to / from Art-Net device.*/
 	ST_CONTROLLER = 0x01, /* A lighting console.*/
 	ST_MEDIA = 0x02, /* A Media Server.*/
@@ -70,9 +73,9 @@ typedef enum STYLE_CODES {
 	ST_BACKUP = 0x04, /* A backup device.*/
 	ST_CONFIG = 0x05, /* A configuration or diagnostic tool.*/
 	ST_VISUAL = 0x06 /* A visualiser. */
-} STYLE_CODES;
+} ART_STYLE_CODES;
 
-typedef enum ART_ADDRESS_COMMANDS { /* see page 32*/
+typedef enum /*_ART_ADDRESS_COMMANDS*/ { /* see page 32*/
 	AC_NONE = 0x00,
 	AC_CANCEL_MERGE = 0x01,
 	AC_LED_NORMAL = 0x02,
@@ -92,7 +95,7 @@ typedef enum ART_ADDRESS_COMMANDS { /* see page 32*/
 	AC_CLEAR_OP3 = 0x93
 } ART_ADDRESS_COMMANDS;
 
-typedef enum ART_PRIORITY { /* Diagnostics Priority codes. See page 35.*/
+typedef enum /*_ART_PRIORITY*/ { /* Diagnostics Priority codes. See page 35.*/
 	DP_LOW = 0x10,
 	DP_MED = 0x40,
 	DP_HIGH = 0x80,
@@ -101,22 +104,19 @@ typedef enum ART_PRIORITY { /* Diagnostics Priority codes. See page 35.*/
 } ART_PRIORITY;
 
 typedef struct {
-	uint8_t id[8];
-	uint16_t opcode;
-	uint8_t protVerHi;
-	uint8_t protVerLo;
-} ArtNetPacket;
-
-typedef struct ArtPollPacket {
 	uint8_t id[8]; /* Array of 8 characters, the final character is a null termination.*/
 	uint16_t opcode; /* The OpCode defines the class of data following ArtPoll within this UDP packet.*/
 	uint8_t protVerHi; /* High byte of the Art-Net protocol revision number.*/
 	uint8_t protVerLo; /* Low byte of the Art-Net protocol revision number. Current value 14. Controllers should ignore communication with nodes using a protocol version lower than 14.*/
+} ArtNetPacket;
+
+typedef struct /*_ArtPollPacket*/ {
+	ArtNetPacket hdr;
 	uint8_t talkToMe; /* Set behaviour of Node. See TALK_TO_ME*/
 	uint8_t priority; /* The lowest priority of diagnostics message that should be send. */
 } ArtNetPollPacket;
 
-typedef struct ArtPollReplyPacket {
+typedef struct /*_ArtPollReplyPacket*/ {
 	uint8_t id[8]; /* Array of 8 characters, the final character is a null termination.*/
 	uint16_t opcode; /* OpPollReply. Transmitted low byte first. */
 	uint8_t address[4]; /* Array containing the Node's IP address. First array entry is most significant byte of address.*/
@@ -155,12 +155,8 @@ typedef struct ArtPollReplyPacket {
 	uint8_t filler[26]; /* Transmit as zero. For future expansion.*/
 } ArtPollReplyPacket;
 
-typedef struct ArtAddressPacket {
-
-	uint8_t id[8]; /* artnet id*/
-	uint8_t opcode;
-	uint8_t protVerHi; /* High byte of the Art-Net protocol revision number.*/
-	uint8_t protVerLo; /* Low byte of the Art-Net protocol revision number.*/
+typedef struct /*_ArtAddressPacket*/ {
+	ArtNetPacket hdr;
 	uint8_t netSwitch; /* see ArtPollReplyPacket description. */
 	uint8_t filler2; /* Pad length to match ArtPoll*/
 	uint8_t shortName[18]; /* see ArtPollReplyPacket description. */
@@ -172,11 +168,8 @@ typedef struct ArtAddressPacket {
 	uint8_t command; /* Node configuration commands.*/
 } ArtAddressPacket;
 
-typedef struct ArtDiagDataPacket {
-	uint8_t id[8];
-	uint16_t opcode;
-	uint8_t protVerHi;
-	uint8_t protVerLo;
+typedef struct /*_ArtDiagDataPacket*/ {
+	ArtNetPacket hdr;
 	uint8_t filler1;
 	uint8_t priority;
 	uint8_t filler2;
@@ -186,11 +179,8 @@ typedef struct ArtDiagDataPacket {
 	uint8_t data[]; /* max 512 bytes including null term.*/
 } ArtDiagDataPacket;
 
-typedef struct ArtDmxPacket { /* page 44*/
-	uint8_t id[8];
-	uint16_t opcode;
-	uint8_t protVerHi;
-	uint8_t protVerLo;
+typedef struct /*_ArtDmxPacket*/ { /* page 44*/
+	ArtNetPacket hdr;
 	uint8_t sequence; /* The sequence number is used to ensure that ArtDMX packets are used in the correct order.*/
 	uint8_t physical; /* The physical input port from which DMX512 data was input. This field is for information only. Use universe for data routing.*/
 	uint8_t subUni; /* The lowByte of the 15 bit Port-Address to which this packet is destined.*/

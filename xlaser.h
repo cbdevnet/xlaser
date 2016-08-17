@@ -11,6 +11,9 @@
 //#include <math.h>
 //#include <errno.h>
 
+#define XLASER_VERSION "XLaser v1.1"
+#define SHORTNAME "XLaser"
+
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>

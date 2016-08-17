@@ -63,6 +63,11 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	width = DisplayWidth(res->display, res->screen);
 	height = DisplayHeight(res->display, res->screen);
 
+	if(config->windowed){
+		width = config->window_width;
+		height = config->window_height;
+	}
+
 	//create window
 	res->main = XCreateWindow(res->display,
 				root,

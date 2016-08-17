@@ -5,3 +5,4 @@ Implement rotation speed
 Fine-tune the need for flood-filling the color buffer / compositing the gobo (most updates only concern the position)
 Fix pixmap clearing when moving from big to small gobo
 Mask-repeat for prism?
+Manpage
