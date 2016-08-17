@@ -5,3 +5,4 @@ Fine-tune the need for flood-filling the color buffer / compositing the gobo (mo
 Fix pixmap clearing when moving from big to small gobo
 Mask-repeat for prism?
 Manpage
+Fail from config / sanity check config!

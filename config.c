@@ -10,10 +10,16 @@ int config_dmxAddress(const char* category, char* key, char* value, EConfig* eco
 	}
 	config->dmx_address = strtoul(value, NULL, 10);
 
+	if(config->dmx_address == 0){
+		fprintf(stderr, "Invalid address provided, must be between 1 and 512\n");
+		return 1;
+	}
+
 	if (config->dmx_address + DMX_CHANNELS > 512) {
 		fprintf(stderr, "DMX Adress is too high for this fixture (%d + %d > 512).\n", config->dmx_address, DMX_CHANNELS);
 		return 1;
 	}
+
 	return 0;
 }
 

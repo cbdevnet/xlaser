@@ -38,10 +38,6 @@ int main(int argc, char** argv){
 
 	parse_config(&config, invalid_arguments[0]);
 
-	if (config.dmx_address == 0) {
-		config.dmx_address = 1;
-	}
-
 	//TODO sanity check config
 	//TODO set up signal handlers
 	if(x11_init(&xres, &config) < 0){

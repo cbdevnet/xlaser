@@ -13,6 +13,7 @@
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
+#define BLUR_CONSTANT 4
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -46,10 +47,11 @@ typedef struct /*_XDATA*/ {
 	Picture composite_buffer;
 	Picture alpha_mask;
 	Picture color_buffer;
+	bool blur_enabled;
 	GC window_gc;
 	unsigned window_width;
 	unsigned window_height;
-	GOBO_IMG gobo[255];
+	GOBO_IMG gobo[256];
 } XRESOURCES;
 
 #define DMX_CHANNELS 16
@@ -88,7 +90,8 @@ enum /*DMX_CHANNEL*/ {
 	GOBO = 9,
 	ZOOM = 10,
 	ROTATION = 11,
-	ROTATION_SPEED = 12
+	ROTATION_SPEED = 12,
+	FOCUS = 13
 };
 
 int usage(char* fn);

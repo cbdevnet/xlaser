@@ -4,6 +4,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 	int maxfd, error;
 	unsigned i;
 	XEvent event;
+	bool exposed;
 
 	xres->window_width = DisplayWidth(xres->display, xres->screen);
 	xres->window_height = DisplayHeight(xres->display, xres->screen);
@@ -11,6 +12,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 	char pressed_key;
 
 	while(!abort_signaled){
+		exposed = false;
 		//handle events
 		while(XPending(xres->display)){
 			XNextEvent(xres->display, &event);
@@ -24,12 +26,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 
 				case Expose:
 					//draw here
-					fprintf(stderr, "Expose message, initiating redraw\n");
-
-					//FIXME this might loop
-					if(x11_render(xres, config->dmx_channels) < 0){
-						fprintf(stderr, "Render procedure failed\n");
-					}
+					exposed = true;
 					break;
 
 				case KeyPress:
@@ -66,6 +63,14 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 				default:
 					fprintf(stderr, "Unhandled X event\n");
 					break;
+			}
+		}
+
+		if(exposed){
+			fprintf(stderr, "Window exposed, drawing\n");
+			//FIXME this might loop
+			if(x11_render(xres, config->dmx_channels) < 0){
+				fprintf(stderr, "Render procedure failed\n");
 			}
 		}
 

@@ -129,6 +129,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 		return -1;
 	}
 
+	//prepare image data
 	//FIXME TODO this whole section needs error checks
 	gobo_path = calloc(strlen(config->gobo_prefix) + 9, sizeof(char));
 	if(!gobo_path){
@@ -162,7 +163,6 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 			}
 		}
 	}
-
 	free(gobo_path);
 	
 	fprintf(stderr, "Creating gobo pixmaps with dimensions %dx%d\n", gobo_max_width, gobo_max_height);
@@ -178,6 +178,17 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	res->composite_buffer = XRenderCreatePicture(res->display, res->main, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
 	res->color_buffer = XRenderCreatePicture(res->display, res->color_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
 	res->alpha_mask = XRenderCreatePicture(res->display, res->gobo_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+
+	//check XRender filtering capabilities
+	XFilters* filters = XRenderQueryFilters(res->display, res->gobo_pixmap);
+	for(u = 0; u < filters->nfilter; u++){
+		fprintf(stderr, "Available filter %d of %d: %s\n", u + 1, filters->nfilter, filters->filter[u]);
+		if(!strcmp(filters->filter[u], "convolution")){
+			fprintf(stderr, "Convolution filter supported, enabling focus effect and generating kernel...\n");
+			res->blur_enabled = true;
+		}
+	}
+	XFree(filters);
 	return 0;
 }
 
@@ -190,6 +201,12 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 		{XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0)},
 		{XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
 	}};
+
+	XFixed blur_kernel[11] = {XDoubleToFixed(3), XDoubleToFixed(3),
+		XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(0),
+		XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0),
+		XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(0)
+	};
 	
 	//legacy compliant code
 	/*XGCValues debug_gc_values = {
@@ -299,6 +316,22 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	transform.matrix[0][2] = XDoubleToFixed(transform_x);
 	transform.matrix[1][2] = XDoubleToFixed(transform_y);
 
+	if(xres->blur_enabled){
+		if(channels[FOCUS]){
+			//interpolate blur kernel
+			blur_kernel[2] = blur_kernel[4] = blur_kernel[8] = blur_kernel[10] = XDoubleToFixed(((double)channels[FOCUS])/((double)(255 * 4 * BLUR_CONSTANT)));
+			blur_kernel[3] = blur_kernel[5] = blur_kernel[7] = blur_kernel[9] = XDoubleToFixed(((double)channels[FOCUS])/((double)(255 * 2 * BLUR_CONSTANT)));
+			blur_kernel[6] = XDoubleToFixed(1.0 - (((double)channels[FOCUS] * 3)/(255.0 * BLUR_CONSTANT)));
+
+			fprintf(stderr, "Applying blur filter\n");
+			//apply blur
+			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "convolution", blur_kernel, 11);
+		}
+		else{
+			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "fast", NULL, 0);
+		}
+	}
+
 	XRenderSetPictureTransform(xres->display, xres->alpha_mask, &transform);
 	//XRenderSetPictureTransform(xres->display, color_buffer, &transform);
 	XClearWindow(xres->display, xres->main);
@@ -308,6 +341,7 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	//XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
 	
+	fprintf(stderr, "Draw done\n");
 	return 0;
 }
 
