@@ -202,6 +202,7 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	
 	//presentation
 	double scaling_factor = 1.0;
+	double dimmer_factor = 1.0;
 	double angle = 0.0;
 	double angle_sin = 0.0, angle_cos = 0.0;
 	unsigned x_pos, y_pos;
@@ -230,7 +231,12 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	render_color.red = channels[RED] << 8;
 	render_color.green = channels[GREEN] << 8;
 	render_color.blue = channels[BLUE] << 8;
-	render_color.alpha = 0xFFFF;
+	//FIXME using the dimmer channel as alpha component does not seem to work with XRenderFillRectangle
+	//render_color.alpha = channels[DIMMER] << 8;
+	dimmer_factor = (double)channels[DIMMER] / 255.0;
+	render_color.red *= dimmer_factor;
+	render_color.green *= dimmer_factor;
+	render_color.blue *= dimmer_factor;
 
 	//set up zoom
 	scaling_factor = (double)(256 - channels[ZOOM]) / 255.0;
