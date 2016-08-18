@@ -1,0 +1,89 @@
+.TH XLASER 1 "August 2016" "v1.0"
+
+.SH NAME
+xlaser \- Art-Net driven X11 scanner fixture
+
+.SH SYNOPSIS
+.BI "xlaser [-h | --help] " config-file " [-d | --dmx " starting-address "] "
+
+.SH DESCRIPTION
+.BR xlaser " creates an X11 window presenting an Art-Net driven scanner-type lighting fixture."
+It can for example be used to create or complement light shows using computer projectors.
+The Art-Net protocol is supported as an output format by most professional lighting control desks
+and software.
+
+.SH OPTIONS
+
+.TP
+.B -h | --help
+Display usage information.
+
+.TP
+.BI "-d | --dmx " starting-address
+.RI "Override the DMX starting address of the fixture specified in the configuration file with " starting-address "."
+
+.TP
+.I config-file
+.RB "The configuration file to use for the  " xlaser " instance. See " sample.conf " for an example configuration."
+The format should hopefully be self-explanatory.
+
+.SH GOBO FORMAT
+Projection gobos can be placed in a configurable gobo folder. Most image formats are supported, using one supporting an alpha
+channel is highly recommended. All non-transparent pixels will be colored according to the RGB mix data in the resulting image.
+
+The file name should be
+.IB gobo-channel-value "." extension
+.RB "(e.g " 127.png ")"
+
+.SH CHANNEL MAP
+
+.TP
+.B Channel 1/2
+Pan coarse/fine
+
+.TP
+.B Channel 3/4
+Tilt coarse/fine
+
+.TP
+.B Channel 5/6/7
+Red/Green/Blue color mix
+
+.TP
+.B Channel 8
+Dimmer
+
+.TP
+.B Channel 9
+Shutter (not yet implemented)
+
+.TP
+.B Channel 10
+Gobo selection
+
+.TP
+.B Channel 11
+Gobo zoom
+
+.TP
+.B Channel 12
+Gobo rotation absolute
+
+.TP
+.B Channel 13
+Gobo rotation speed (not yet implemented)
+
+.TP
+.B Channel 14
+Gobo focus (experimental)
+
+.SH BUGS
+The focus channel is an experimental feature only enabled when XRender supports the convolution filter.
+It might be slow or not usable at all.
+
+.SH AUTHOR
+mpease <me at mpease dot de>
+cbdev <cb at cbcdn dot com>
+
+.SH SEE ALSO
+I don't know of any other (X11-based) tools that do this. If you do, drop us an email!
