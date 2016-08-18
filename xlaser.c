@@ -55,7 +55,8 @@ int main(int argc, char** argv){
 	//run main loop
 	xlaser(&xres, &config);
 
-	//TODO cleanup
+	//cleanup
+	x11_cleanup(&xres);
 	free(config.bindhost);
 	free(config.gobo_prefix);
 

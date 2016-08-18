@@ -184,7 +184,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	for(u = 0; u < filters->nfilter; u++){
 		fprintf(stderr, "Available filter %d of %d: %s\n", u + 1, filters->nfilter, filters->filter[u]);
 		if(!strcmp(filters->filter[u], "convolution")){
-			fprintf(stderr, "Convolution filter supported, enabling focus effect and generating kernel...\n");
+			fprintf(stderr, "Convolution filter supported, enabling focus effect...\n");
 			res->blur_enabled = true;
 		}
 	}
@@ -345,4 +345,32 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	return 0;
 }
 
-//TODO stbi_image_free
+void x11_cleanup(XRESOURCES* res){
+	unsigned u;
+	if(!res->display){
+		return;
+	}
+
+	XRenderFreePicture(res->display, res->composite_buffer);
+	XRenderFreePicture(res->display, res->alpha_mask);
+	XRenderFreePicture(res->display, res->color_buffer);
+
+	XFreePixmap(res->display, res->gobo_pixmap);
+	XFreePixmap(res->display, res->color_pixmap);
+
+	for(u = 0; u < 256; u++){
+		if(res->gobo[u].data){
+			//XDestroyImage also frees the backing data, so stbi_image_free would be a double-free
+			XDestroyImage(res->gobo[u].ximage);
+		}
+	}
+
+	XFreeGC(res->display, res->window_gc);
+
+	if(res->main){
+		XDestroyWindow(res->display, res->main);
+	}
+
+	XCloseDisplay(res->display);
+	xfd_free(&(res->xfds));
+}
