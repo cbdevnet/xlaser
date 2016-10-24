@@ -66,7 +66,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 			}
 		}
 
-		if(exposed){
+		if(exposed || config->dmx_channels[SHUTTER] != 0){
 			fprintf(stderr, "Window exposed, drawing\n");
 			//FIXME this might loop
 			if(x11_render(xres, config->dmx_channels) < 0){
@@ -83,8 +83,9 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 		//prepare select data
 		FD_ZERO(&readfds);
 		maxfd = -1;
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
+		//when using the shutter feature, cycle faster
+		tv.tv_sec = (config->dmx_channels[SHUTTER] == 0) ? 1:0;
+		tv.tv_usec = (config->dmx_channels[SHUTTER] == 0) ? 0:1000;
 
 		for(i = 0; i < xres->xfds.size; i++){
 			FD_SET(xres->xfds.fds[i], &readfds);

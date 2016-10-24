@@ -194,6 +194,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 
 int x11_render(XRESOURCES* xres, uint8_t* channels){
 	uint8_t selected_gobo;
+	struct timespec current_time = {};
 	//XColor rgb_color;
 	XRenderColor render_color;
 	XTransform transform = {{
@@ -221,6 +222,7 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	double angle = 0.0;
 	double angle_sin = 0.0, angle_cos = 0.0;
 	unsigned x_pos, y_pos;
+	long shutter_offset = 0, shutter_interval = 0;
 
 	//XdbeSwapInfo swap_info;
 
@@ -234,21 +236,45 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 		return -1;
 	}
 
+	//read color data
+	render_color.red = channels[RED] << 8;
+	render_color.green = channels[GREEN] << 8;
+	render_color.blue = channels[BLUE] << 8;
 	//FIXME is this still needed
-	//set up color
 	/*rgb_color.red = channels[RED] << 8;
 	rgb_color.green = channels[GREEN] << 8;
 	rgb_color.blue = channels[BLUE] << 8;
 	XAllocColor(xres->display, xres->colormap, &rgb_color);
 	debug_gc_values.foreground = rgb_color.pixel;
 	//XChangeGC(xres->display, debug_gc, GCForeground, &debug_gc_values);*/
-
-	render_color.red = channels[RED] << 8;
-	render_color.green = channels[GREEN] << 8;
-	render_color.blue = channels[BLUE] << 8;
+	
+	//calculate dimmer from input data
+	dimmer_factor = (double)channels[DIMMER] / 255.0;
 	//FIXME using the dimmer channel as alpha component does not seem to work with XRenderFillRectangle
 	//render_color.alpha = channels[DIMMER] << 8;
-	dimmer_factor = (double)channels[DIMMER] / 255.0;
+
+	//process shutter channel
+	if(channels[SHUTTER]){
+		if(channels[SHUTTER] >= 1 && channels[SHUTTER] <= 127){
+			//strobe effect
+			shutter_offset = xres->last_render.tv_nsec % (long)(1e9 / (channels[SHUTTER] / 8.0));
+			dimmer_factor = (shutter_offset > 55e6) ? 0:dimmer_factor;
+		}
+		else if(channels[SHUTTER] >= 128 && channels[SHUTTER] <= 192){
+			//flash in
+			shutter_interval = 1e9 / (channels[SHUTTER] - 127);
+			shutter_offset = xres->last_render.tv_nsec % shutter_interval;
+			dimmer_factor *= (double) shutter_offset / (double) shutter_interval;
+		}
+		else if(channels[SHUTTER] >= 193 && channels[SHUTTER] <= 255){
+			//flash out
+			shutter_interval = 1e9 / (channels[SHUTTER] - 192);
+			shutter_offset = xres->last_render.tv_nsec % shutter_interval;
+			dimmer_factor *= 1.0 - ((double) shutter_offset / (double) shutter_interval);
+		}
+	}
+
+	//apply dimming
 	render_color.red *= dimmer_factor;
 	render_color.green *= dimmer_factor;
 	render_color.blue *= dimmer_factor;
@@ -341,7 +367,16 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 	//XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
 	
-	fprintf(stderr, "Draw done\n");
+	//set the last render timer and update the shutter offset
+	if(clock_gettime(CLOCK_MONOTONIC_RAW, &current_time)){
+		perror("clock_gettime");
+	}
+
+	long rendertime = current_time.tv_nsec - xres->last_render.tv_nsec;
+	rendertime = rendertime < 0 ? 1e9 - rendertime:rendertime;
+	fprintf(stderr, "Render time %ld, %f rps\n", rendertime, 1e9/rendertime);
+
+	xres->last_render = current_time;
 	return 0;
 }
 

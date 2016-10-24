@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <signal.h>
+#include <time.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 //#include <unistd.h>
@@ -52,6 +53,7 @@ typedef struct /*_XDATA*/ {
 	unsigned window_width;
 	unsigned window_height;
 	GOBO_IMG gobo[256];
+	struct timespec last_render;
 } XRESOURCES;
 
 #define DMX_CHANNELS 16

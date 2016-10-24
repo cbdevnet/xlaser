@@ -20,7 +20,11 @@ to functionality.
 * Channel 3/4: Tilt coarse/fine
 * Channel 5/6/7: Red/Green/Blue color mix
 * Channel 8: Dimmer
-* Channel 9: Shutter (not yet implemented)
+* Channel 9: Shutter
+	* 0 Open
+	* 1-127 Strobe slow-fast
+	* 128-192 Flash in slow-fast
+	* 193-255 Flash out slow-fast
 * Channel 10: Gobo
 * Channel 11: Gobo zoom
 * Channel 12: Gobo rotation absolute
