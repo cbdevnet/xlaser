@@ -14,7 +14,6 @@
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
-#define BLUR_CONSTANT 4
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -26,6 +25,9 @@
 #include "xfds.h"
 
 volatile sig_atomic_t abort_signaled = 0;
+
+#define BLUR_KERNEL_DIM 3
+#define BLUR_SIGMA 20.0
 
 typedef struct /*_GOBO*/ {
 	int width;
@@ -54,6 +56,7 @@ typedef struct /*_XDATA*/ {
 	unsigned window_height;
 	GOBO_IMG gobo[256];
 	struct timespec last_render;
+	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 } XRESOURCES;
 
 #define DMX_CHANNELS 16

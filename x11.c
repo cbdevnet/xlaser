@@ -1,3 +1,31 @@
+void generate_gauss_filter(XRESOURCES* res) {
+	//interpolate blur kernel
+	int i;
+	int j;
+	double first = 1.0 / (2.0 * M_PI * BLUR_SIGMA * BLUR_SIGMA);
+	double div = 2.0 * BLUR_SIGMA * BLUR_SIGMA;
+	double val;
+	double sum = 0.0;
+
+	int half_dim = BLUR_KERNEL_DIM / 2;
+
+	// generate gauss values
+	for (i = half_dim * (-1.0); i < half_dim + 1; i++) {
+		for (j = (-1.0) * half_dim; j < half_dim + 1; j++) {
+			val = (first * exp( -1.0 * ((i * i + j * j) / div)));
+			sum += val;
+			res->gauss_kernel[i + half_dim][j + half_dim] = val;
+		}
+	}
+
+	// normalize
+	for (i = 0; i < BLUR_KERNEL_DIM; i++) {
+		for (j = 0; j < BLUR_KERNEL_DIM; j++) {
+			res->gauss_kernel[i][j] /= sum;
+		}
+	}
+}
+
 int x11_init(XRESOURCES* res, CONFIG* config){
 	Window root;
 	XSetWindowAttributes window_attributes;
@@ -186,6 +214,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 		if(!strcmp(filters->filter[u], "convolution")){
 			fprintf(stderr, "Convolution filter supported, enabling focus effect...\n");
 			res->blur_enabled = true;
+			generate_gauss_filter(res);
 		}
 	}
 	XFree(filters);
@@ -193,6 +222,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 }
 
 int x11_render(XRESOURCES* xres, uint8_t* channels){
+	fprintf(stderr, "begin rendering\n");
 	uint8_t selected_gobo;
 	struct timespec current_time = {};
 	//XColor rgb_color;
@@ -203,19 +233,12 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 		{XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
 	}};
 
-	XFixed blur_kernel[11] = {XDoubleToFixed(3), XDoubleToFixed(3),
-		XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(0),
-		XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0),
-		XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(0)
-	};
-	
 	//legacy compliant code
 	/*XGCValues debug_gc_values = {
 		.foreground = WhitePixel(xres->display, xres->screen),
 		.background = BlackPixel(xres->display, xres->screen)
 	};
 	GC debug_gc;*/
-	
 	//presentation
 	double scaling_factor = 1.0;
 	double dimmer_factor = 1.0;
@@ -344,14 +367,30 @@ int x11_render(XRESOURCES* xres, uint8_t* channels){
 
 	if(xres->blur_enabled){
 		if(channels[FOCUS]){
-			//interpolate blur kernel
-			blur_kernel[2] = blur_kernel[4] = blur_kernel[8] = blur_kernel[10] = XDoubleToFixed(((double)channels[FOCUS])/((double)(255 * 4 * BLUR_CONSTANT)));
-			blur_kernel[3] = blur_kernel[5] = blur_kernel[7] = blur_kernel[9] = XDoubleToFixed(((double)channels[FOCUS])/((double)(255 * 2 * BLUR_CONSTANT)));
-			blur_kernel[6] = XDoubleToFixed(1.0 - (((double)channels[FOCUS] * 3)/(255.0 * BLUR_CONSTANT)));
+			// n x n matrix plus width and height
+			int blur_kernel_size = BLUR_KERNEL_DIM * BLUR_KERNEL_DIM + 2;
+			XFixed blur_kernel[blur_kernel_size];
 
+			blur_kernel[0] = XDoubleToFixed(BLUR_KERNEL_DIM);
+			blur_kernel[1] = XDoubleToFixed(BLUR_KERNEL_DIM);
+
+			double chan = (double) channels[FOCUS] / 255.0;
+			double val = 0.0;
+
+			unsigned i, j;
+
+			for (i = 0; i < BLUR_KERNEL_DIM; i++) {
+				for (j = 0; j < BLUR_KERNEL_DIM; j++) {
+					val = chan * xres->gauss_kernel[i][j];
+					if (i == BLUR_KERNEL_DIM / 2 && j == BLUR_KERNEL_DIM / 2) {
+						val += 1.0 - chan;
+					}
+					blur_kernel[(i * BLUR_KERNEL_DIM) + j + 2] = XDoubleToFixed(val);
+				}
+			}
 			fprintf(stderr, "Applying blur filter\n");
 			//apply blur
-			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "convolution", blur_kernel, 11);
+			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "convolution", blur_kernel, blur_kernel_size);
 		}
 		else{
 			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "fast", NULL, 0);
