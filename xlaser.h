@@ -33,6 +33,9 @@
 
 volatile sig_atomic_t abort_signaled = 0;
 
+#define BLUR_KERNEL_DIM 3
+#define BLUR_SIGMA 20.0
+
 typedef struct /*_GOBO*/ {
 	int width;
 	int height;
@@ -63,6 +66,7 @@ typedef struct /*_XDATA*/ {
 	#ifdef OPENGL
 	GLXContext gl_context;
 	#endif
+	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 } XRESOURCES;
 
 #define DMX_CHANNELS 16
