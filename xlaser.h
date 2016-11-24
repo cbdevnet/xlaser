@@ -15,16 +15,15 @@
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
 #define BLUR_CONSTANT 4
-#define OPENGL
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
-//#include <X11/Xft/Xft.h>
+
+#ifndef OPENGL
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrender.h>
-
-#ifdef OPENGL
+#else
 #include <GL/gl.h>
 #include <GL/glx.h>
 #endif
@@ -48,9 +47,14 @@ typedef struct /*_XDATA*/ {
 	int screen;
 	Display* display;
 	Window main;
-	XdbeBackBuffer back_buffer;
-	Atom wm_delete;
 	X_FDS xfds;
+	Atom wm_delete;
+	unsigned window_width;
+	unsigned window_height;
+	GOBO_IMG gobo[256];
+	struct timespec last_render;
+	#ifndef OPENGL
+	XdbeBackBuffer back_buffer;
 	Colormap colormap;
 	Pixmap gobo_pixmap;
 	Pixmap color_pixmap;
@@ -59,11 +63,7 @@ typedef struct /*_XDATA*/ {
 	Picture color_buffer;
 	bool blur_enabled;
 	GC window_gc;
-	unsigned window_width;
-	unsigned window_height;
-	GOBO_IMG gobo[256];
-	struct timespec last_render;
-	#ifdef OPENGL
+	#else
 	GLXContext gl_context;
 	#endif
 	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
@@ -120,5 +120,6 @@ int usage(char* fn);
 #include "artnet.h"
 #include "artnet.c"
 #include "xfds.c"
+#include "backend_xrender.c"
 #include "x11.c"
 #include "coreloop.c"

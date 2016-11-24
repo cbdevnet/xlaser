@@ -69,7 +69,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 		if(exposed || config->dmx_channels[SHUTTER] != 0){
 			fprintf(stderr, "Window exposed, drawing\n");
 			//FIXME this might loop
-			if(x11_render(xres, config->dmx_channels) < 0){
+			if(xlaser_render(xres, config->dmx_channels) < 0){
 				fprintf(stderr, "Render procedure failed\n");
 			}
 		}
