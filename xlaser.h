@@ -15,6 +15,7 @@
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
 #define BLUR_CONSTANT 4
+#define OPENGL
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -22,6 +23,11 @@
 //#include <X11/Xft/Xft.h>
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrender.h>
+
+#ifdef OPENGL
+#include <GL/gl.h>
+#include <GL/glx.h>
+#endif
 
 #include "xfds.h"
 
@@ -54,6 +60,9 @@ typedef struct /*_XDATA*/ {
 	unsigned window_height;
 	GOBO_IMG gobo[256];
 	struct timespec last_render;
+	#ifdef OPENGL
+	GLXContext gl_context;
+	#endif
 } XRESOURCES;
 
 #define DMX_CHANNELS 16

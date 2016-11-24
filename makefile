@@ -3,7 +3,7 @@ export DOCDIR?=$(DESTDIR)$(PREFIX)/share/man/man1
 
 .PHONY: all clean
 CFLAGS?=-g -Wall
-LDLIBS?=-lm -lXext -lX11 -lXrender
+LDLIBS?=-lm -lXext -lX11 -lXrender -lGL
 
 all: xlaser xlaser.1.gz
 
