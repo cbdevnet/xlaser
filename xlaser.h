@@ -120,6 +120,10 @@ int usage(char* fn);
 #include "artnet.h"
 #include "artnet.c"
 #include "xfds.c"
+#ifndef OPENGL
 #include "backend_xrender.c"
+#else
+#include "backend_opengl.c"
+#endif
 #include "x11.c"
 #include "coreloop.c"

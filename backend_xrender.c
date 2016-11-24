@@ -1,5 +1,3 @@
-
-
 void generate_gauss_filter(XRESOURCES* res) {
 	//interpolate blur kernel
 	int i;
@@ -26,6 +24,72 @@ void generate_gauss_filter(XRESOURCES* res) {
 			res->gauss_kernel[i][j] /= sum;
 		}
 	}
+}
+
+int backend_init(XRESOURCES* res, CONFIG* config){
+	int xdbe_major, xdbe_minor;
+	int xrender_major, xrender_minor;
+	int gobo_max_width = 0, gobo_max_height = 0;
+	unsigned u;
+
+	if(!XRenderQueryExtension(res->display, &xrender_major, &xrender_minor)){
+		fprintf(stderr, "XRender extension not enabled on display\n");
+		return -1;
+	}
+
+	config->double_buffer = (XdbeQueryExtension(res->display, &xdbe_major, &xdbe_minor) != 0);
+	XRenderQueryVersion(res->display, &xrender_major, &xrender_minor);
+	fprintf(stderr, "Xdbe version %d.%d\n", xdbe_major, xdbe_minor);
+	fprintf(stderr, "Xrender version %d.%d\n", xrender_major, xrender_minor);
+
+	//allocate back drawing buffer
+	if(config->double_buffer){
+		res->back_buffer = XdbeAllocateBackBufferName(res->display, res->main, XdbeBackground);
+	}
+
+	for(u = 0; u < 256; u++){
+		if(res->gobo[u].data){
+			res->gobo[u].ximage = XCreateImage(res->display, DefaultVisual(res->display, res->screen), 32, ZPixmap, 0, (char*)res->gobo[u].data, res->gobo[u].width, res->gobo[u].height, 32, 0);
+			if(!res->gobo[u].ximage){
+				fprintf(stderr, "Failed to create XImage for gobo %d\n", u);
+				return -1;
+			}
+
+			if(res->gobo[u].height > gobo_max_height){
+				gobo_max_height = res->gobo[u].height;
+			}
+			if(res->gobo[u].width > gobo_max_width){
+				gobo_max_width = res->gobo[u].width;
+			}
+		}
+	}
+
+	fprintf(stderr, "Creating gobo pixmaps with dimensions %dx%d\n", gobo_max_width, gobo_max_height);
+	res->gobo_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
+	res->color_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
+	if(!res->gobo_pixmap || ! res->color_pixmap){
+		fprintf(stderr, "Failed to create backing pixmaps\n");
+		return -1;
+	}
+
+	//debug_gc = XCreateGC(xres->display, gobo_pixmap, GCForeground | GCBackground, &debug_gc_values);
+	res->window_gc = XCreateGC(res->display, res->gobo_pixmap, 0, NULL);
+	res->composite_buffer = XRenderCreatePicture(res->display, res->main, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+	res->color_buffer = XRenderCreatePicture(res->display, res->color_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+	res->alpha_mask = XRenderCreatePicture(res->display, res->gobo_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+
+	//check XRender filtering capabilities
+	XFilters* filters = XRenderQueryFilters(res->display, res->gobo_pixmap);
+	for(u = 0; u < filters->nfilter; u++){
+		fprintf(stderr, "Available filter %d of %d: %s\n", u + 1, filters->nfilter, filters->filter[u]);
+		if(!strcmp(filters->filter[u], "convolution")){
+			fprintf(stderr, "Convolution filter supported, enabling focus effect...\n");
+			res->blur_enabled = true;
+			generate_gauss_filter(res);
+		}
+	}
+	XFree(filters);
+	return 0;
 }
 
 int xlaser_render(XRESOURCES* xres, uint8_t* channels){
