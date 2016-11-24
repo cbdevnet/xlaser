@@ -14,7 +14,6 @@
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
-#define BLUR_CONSTANT 4
 #define OPENGL
 
 #include <X11/Xlib.h>
@@ -24,6 +23,9 @@
 #ifndef OPENGL
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrender.h>
+#define BLUR_KERNEL_DIM 3
+#define BLUR_SIGMA 20.0
+#define BLUR_CONSTANT 4
 #else
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -33,14 +35,14 @@
 
 volatile sig_atomic_t abort_signaled = 0;
 
-#define BLUR_KERNEL_DIM 3
-#define BLUR_SIGMA 20.0
 
 typedef struct /*_GOBO*/ {
 	int width;
 	int height;
 	int components;
+	#ifndef OPENGL
 	XImage* ximage;
+	#endif
 	uint8_t* data;
 } GOBO_IMG;
 
@@ -65,10 +67,10 @@ typedef struct /*_XDATA*/ {
 	Picture color_buffer;
 	bool blur_enabled;
 	GC window_gc;
+	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 	#else
 	GLXContext gl_context;
 	#endif
-	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 } XRESOURCES;
 
 #define DMX_CHANNELS 16
