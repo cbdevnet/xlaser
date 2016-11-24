@@ -15,6 +15,7 @@
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
 #define BLUR_CONSTANT 4
+#define OPENGL
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -53,9 +54,10 @@ typedef struct /*_XDATA*/ {
 	unsigned window_height;
 	GOBO_IMG gobo[256];
 	struct timespec last_render;
+	Colormap colormap;
+	XVisualInfo visual_info;
 	#ifndef OPENGL
 	XdbeBackBuffer back_buffer;
-	Colormap colormap;
 	Pixmap gobo_pixmap;
 	Pixmap color_pixmap;
 	Picture composite_buffer;

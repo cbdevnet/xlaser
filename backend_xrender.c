@@ -289,3 +289,23 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	return 0;
 }
 
+void backend_free(XRESOURCES* res){
+	unsigned u;
+
+	XRenderFreePicture(res->display, res->composite_buffer);
+	XRenderFreePicture(res->display, res->alpha_mask);
+	XRenderFreePicture(res->display, res->color_buffer);
+
+	XFreePixmap(res->display, res->gobo_pixmap);
+	XFreePixmap(res->display, res->color_pixmap);
+
+	for(u = 0; u < 256; u++){
+		if(res->gobo[u].data){
+			//XDestroyImage also frees the backing data, so stbi_image_free would be a double-free
+			XDestroyImage(res->gobo[u].ximage);
+			res->gobo[u].data = NULL;
+		}
+	}
+
+	XFreeGC(res->display, res->window_gc);
+}

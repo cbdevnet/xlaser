@@ -4,7 +4,6 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	unsigned width, height;
 	Atom wm_state_fullscreen;
 	XTextProperty window_name;
-	XVisualInfo visual_info;
 	pid_t pid = getpid();
 	unsigned u;
 	char* gobo_path = NULL;
@@ -35,12 +34,12 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	res->screen = DefaultScreen(res->display);
 	root = RootWindow(res->display, res->screen);
 
-	if(!XMatchVisualInfo(res->display, res->screen, 32, TrueColor, &visual_info)) {
+	if(!XMatchVisualInfo(res->display, res->screen, 32, TrueColor, &(res->visual_info))) {
 		fprintf(stderr, "Display does not support RGBA TrueColor visual\n");
 		return -1;
 	}
 
-	res->colormap = XCreateColormap(res->display, root, visual_info.visual, AllocNone);
+	res->colormap = XCreateColormap(res->display, root, res->visual_info.visual, AllocNone);
 
 	//set up window params
 	window_attributes.background_pixel = XBlackPixel(res->display, res->screen);
@@ -66,7 +65,7 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 				0,
 				32,
 				InputOutput,
-				visual_info.visual,
+				res->visual_info.visual,
 				CWBackPixel | CWCursor | CWEventMask | CWBorderPixel | CWColormap,
 				&window_attributes);
 
@@ -141,22 +140,14 @@ void x11_cleanup(XRESOURCES* res){
 	if(!res->display){
 		return;
 	}
-
-	XRenderFreePicture(res->display, res->composite_buffer);
-	XRenderFreePicture(res->display, res->alpha_mask);
-	XRenderFreePicture(res->display, res->color_buffer);
-
-	XFreePixmap(res->display, res->gobo_pixmap);
-	XFreePixmap(res->display, res->color_pixmap);
+	
+	backend_free(res);
 
 	for(u = 0; u < 256; u++){
 		if(res->gobo[u].data){
-			//XDestroyImage also frees the backing data, so stbi_image_free would be a double-free
-			XDestroyImage(res->gobo[u].ximage);
+			free(res->gobo[u].data);
 		}
 	}
-
-	XFreeGC(res->display, res->window_gc);
 
 	if(res->main){
 		XDestroyWindow(res->display, res->main);
