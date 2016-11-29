@@ -14,7 +14,7 @@
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
-#define OPENGL
+//#define OPENGL
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>

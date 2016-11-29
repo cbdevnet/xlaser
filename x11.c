@@ -1,7 +1,6 @@
 int x11_init(XRESOURCES* res, CONFIG* config){
 	Window root;
 	XSetWindowAttributes window_attributes;
-	unsigned width, height;
 	Atom wm_state_fullscreen;
 	XTextProperty window_name;
 	pid_t pid = getpid();
@@ -47,12 +46,12 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 	window_attributes.colormap = res->colormap;
 	window_attributes.cursor = None;
 	window_attributes.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | StructureNotifyMask;
-	width = DisplayWidth(res->display, res->screen);
-	height = DisplayHeight(res->display, res->screen);
+	res->window_width = DisplayWidth(res->display, res->screen);
+	res->window_height = DisplayHeight(res->display, res->screen);
 
 	if(config->windowed){
-		width = config->window_width;
-		height = config->window_height;
+		res->window_width = config->window_width;
+		res->window_height = config->window_height;
 	}
 
 	//create window
@@ -60,8 +59,8 @@ int x11_init(XRESOURCES* res, CONFIG* config){
 				root,
 				0,
 				0,
-				width,
-				height,
+				res->window_width,
+				res->window_height,
 				0,
 				32,
 				InputOutput,
