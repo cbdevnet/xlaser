@@ -25,6 +25,7 @@
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrender.h>
 #else
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 #endif
@@ -67,6 +68,21 @@ typedef struct /*_XDATA*/ {
 	GC window_gc;
 	#else
 	GLXContext gl_context;
+	GLuint fboID;
+	GLuint rbo_depth;
+	GLuint fbo_texture;
+	GLuint fbo_vbo_ID;
+	GLuint fbo_program_ID;
+	GLuint fbo_program_texture_sampler;
+	GLuint fbo_program_filter;
+	GLuint fbo_program_attribute;
+	GLuint gobo_texture_ID;
+	GLuint gobo_program_ID;
+	GLuint gobo_program_texture_sampler;
+	GLuint gobo_program_colormod;
+	GLuint gobo_program_attribute;
+	GLuint gobo_modelview_ID;
+	uint8_t gobo_last;
 	#endif
 	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 } XRESOURCES;
@@ -125,6 +141,7 @@ int usage(char* fn);
 #ifndef OPENGL
 #include "backend_xrender.c"
 #else
+#include "openglprogram.c"
 #include "backend_opengl.c"
 #endif
 #include "x11.c"
