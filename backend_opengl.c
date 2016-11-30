@@ -11,7 +11,6 @@
 int backend_init(XRESOURCES* res, CONFIG* config)
 {
 
-
 	res->gl_context = glXCreateContext(res->display, &(res->visual_info), NULL, True);
 
 	if( res->gl_context == 0L)
@@ -56,7 +55,7 @@ int backend_init(XRESOURCES* res, CONFIG* config)
 	glEnable( GL_DEPTH_TEST);
 	glDepthFunc( GL_LESS );	
 
-	int scrX = 958, scrY = 1078;
+	int scrX = 0, scrY = 0;
 	//Target texture for render
 	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &res->fbo_texture);
@@ -136,10 +135,31 @@ int backend_init(XRESOURCES* res, CONFIG* config)
 	return 0;
 }
 
+int xlaser_reconfigure(XRESOURCES* xres)
+{
+	glBindRenderbuffer( GL_RENDERBUFFER, xres->rbo_depth);
+	glBindTexture( GL_TEXTURE_2D, xres->fbo_texture);
+	glBindFramebuffer( GL_FRAMEBUFFER, xres->fboID );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, xres->window_width, xres->window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0L );
+	glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT, xres->window_width, xres->window_height );
+	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, xres->rbo_depth );
+	
+	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, DrawBuffers);
+	
+	glBindFramebuffer( GL_FRAMEBUFFER , 0);
+
+	return 0;
+}
+
 int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 {
 
-	double scaling_factor = 1.0;
+	double scaling_factor = (double)(256 - channels[ZOOM]) / 255.0;
+	if( scaling_factor > 1.0)
+	{
+		scaling_factor = 1.0;
+	}
 	double dimmer_factor = (double) channels[DIMMER] / 255.0;
 	uint8_t selected_gobo;
 	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--)
@@ -160,17 +180,48 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 		fprintf(stderr,"Changing gobo\n");
 		//glBindTexture( GL_TEXTURE_2D, xres->gobo_texture_ID );
 	}
-	
-	double angle = M_PI * 2 *((double) (channels[ROTATION] / 255.0));
-	double cos_a = cos(angle);
-	double sin_a = sin(angle);
+	long shutter_offset = 0, shutter_interval = 0;
+	if(channels[SHUTTER]){
+		if(channels[SHUTTER] >= 1 && channels[SHUTTER] <= 127){
+			//strobe effect
+			shutter_offset = xres->last_render.tv_nsec % (long)(1e9 / (channels[SHUTTER] / 8.0));
+			dimmer_factor = (shutter_offset > 55e6) ? 0:dimmer_factor;
+		}
+		else if(channels[SHUTTER] >= 128 && channels[SHUTTER] <= 192){
+			//flash in
+			shutter_interval = 1e9 / (channels[SHUTTER] - 127);
+			shutter_offset = xres->last_render.tv_nsec % shutter_interval;
+			dimmer_factor *= (double) shutter_offset / (double) shutter_interval;
+		}
+		else if(channels[SHUTTER] >= 193 && channels[SHUTTER] <= 255){
+			//flash out
+			shutter_interval = 1e9 / (channels[SHUTTER] - 192);
+			shutter_offset = xres->last_render.tv_nsec % shutter_interval;
+			dimmer_factor *= 1.0 - ((double) shutter_offset / (double) shutter_interval);
+		}
+	}
 
+	const double angle = M_PI * 2 *((double) (channels[ROTATION] / 255.0));
+	const double cos_a = cos(angle);
+	const double sin_a = sin(angle);
+	const double win_scale = (double)xres->window_height/(double)xres->window_width;
+	double window_x_scale = scaling_factor;
+	double window_y_scale = scaling_factor;
+
+	if( win_scale <= 1.0 ){
+		window_x_scale *= win_scale;
+	}else{
+		window_y_scale /= win_scale;
+	}
+
+	double x_pos = (((double)(channels[PAN] << 8 | channels[PAN_FINE]) / 65535.0 * 2 * ( 1 - window_x_scale ))) - 1 + window_x_scale;
+	double y_pos = (((double)(channels[TILT] << 8 | channels[TILT_FINE]) / 65535.0 * 2 * ( 1 - window_y_scale ))) - 1 + window_y_scale;
 	float modelview[4][4] = 
 	{ 
-		{cos_a,-sin_a,0,0},
-		{sin_a,cos_a,0,0},
+		{cos_a * window_x_scale,-sin_a * window_y_scale,0,0},
+		{sin_a * window_x_scale,cos_a * window_y_scale,0,0},
 		{0,0,1,0},
-		{0,0,0,1}
+		{x_pos,y_pos,0,1}
 	};
 
 	glUniformMatrix4fv( xres->gobo_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));
