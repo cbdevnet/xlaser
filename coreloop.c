@@ -4,7 +4,8 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 	int maxfd, error;
 	unsigned i;
 	XEvent event;
-	bool exposed;
+	bool exposed, reconfigured;
+	struct timespec current_time = {};
 
 	xres->window_width = DisplayWidth(xres->display, xres->screen);
 	xres->window_height = DisplayHeight(xres->display, xres->screen);
@@ -12,7 +13,7 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 	char pressed_key;
 
 	while(!abort_signaled){
-		exposed = false;
+		exposed = reconfigured = false;
 		//handle events
 		while(XPending(xres->display)){
 			XNextEvent(xres->display, &event);
@@ -22,10 +23,10 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 					fprintf(stderr, "Window configured to %dx%d\n", event.xconfigure.width, event.xconfigure.height);
 					xres->window_width = event.xconfigure.width;
 					xres->window_height = event.xconfigure.height;
+					reconfigured = true;
 					break;
 
 				case Expose:
-					//draw here
 					exposed = true;
 					break;
 
@@ -66,12 +67,23 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 			}
 		}
 
+		if(reconfigured){
+			if(xlaser_reconfigure(xres)){
+				fprintf(stderr, "Backend failed to reconfigure\n");
+			}
+		}
+
 		if(exposed || config->dmx_channels[SHUTTER] != 0){
 			fprintf(stderr, "Window exposed, drawing\n");
 			//FIXME this might loop
 			if(xlaser_render(xres, config->dmx_channels) < 0){
 				fprintf(stderr, "Render procedure failed\n");
 			}
+			//set the last render timer
+			if(clock_gettime(CLOCK_MONOTONIC_RAW, &current_time)){
+				perror("clock_gettime");
+			}
+			xres->last_render = current_time;
 		}
 
 		XFlush(xres->display);

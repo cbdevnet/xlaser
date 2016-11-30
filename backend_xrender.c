@@ -92,9 +92,12 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	return 0;
 }
 
+int xlaser_reconfigure(XRESOURCES* res){
+	return 0;
+}
+
 int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	uint8_t selected_gobo;
-	struct timespec current_time = {};
 	//XColor rgb_color;
 	XRenderColor render_color;
 	XTransform transform = {{
@@ -275,17 +278,6 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	//XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
-	
-	//set the last render timer and update the shutter offset
-	if(clock_gettime(CLOCK_MONOTONIC_RAW, &current_time)){
-		perror("clock_gettime");
-	}
-
-	long rendertime = current_time.tv_nsec - xres->last_render.tv_nsec;
-	rendertime = rendertime < 0 ? 1e9 - rendertime:rendertime;
-	fprintf(stderr, "Render time %ld, %f rps\n", rendertime, 1e9/rendertime);
-
-	xres->last_render = current_time;
 	return 0;
 }
 
