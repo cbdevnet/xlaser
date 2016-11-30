@@ -1,35 +1,64 @@
-#include <GL/glew.h>
-#include <GL/glx.h>
-#include <GL/gl.h>
+GLuint backend_compile(unsigned char *vertex_source, unsigned char *fragment_source){
+	GLint result = GL_FALSE;
+	int InfoLength;
 
-#include <stdio.h>
-#include <math.h>
+	GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
 
-#include "openglprogram.h"
+	glShaderSource(vertex_shader_id, 1, (const GLchar**) &vertex_source, NULL);
+	glCompileShader(vertex_shader_id);
+
+	glGetShaderiv(vertex_shader_id, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(vertex_shader_id, GL_INFO_LOG_LENGTH, &InfoLength);
+	if(InfoLength > 0){
+		char *string = calloc(InfoLength + 1, sizeof(char));
+		glGetShaderInfoLog(vertex_shader_id, InfoLength, NULL, string);
+		printf("%s\n", &string[0]);
+		free(string);
+	}
+
+	glShaderSource(fragment_shader_id, 1, (const GLchar**) &fragment_source, NULL);
+	glCompileShader(fragment_shader_id);
+
+	glGetShaderiv(fragment_shader_id, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(fragment_shader_id, GL_INFO_LOG_LENGTH, &InfoLength);
+	if(InfoLength > 0){
+		char *string = calloc(InfoLength + 1, sizeof(char));
+		glGetShaderInfoLog(fragment_shader_id, InfoLength, NULL, string);
+		printf("%s\n", &string[0]);
+		free(string);
+	}
+
+	GLuint program_id = glCreateProgram();
+	glAttachShader(program_id, vertex_shader_id);
+	glAttachShader(program_id, fragment_shader_id);
+	glLinkProgram(program_id);
+
+	glDetachShader(program_id, vertex_shader_id);
+	glDetachShader(program_id, fragment_shader_id);
+
+	glDeleteShader(vertex_shader_id);
+	glDeleteShader(fragment_shader_id);
+	return program_id;
+}
 
 
-int backend_init(XRESOURCES* res, CONFIG* config)
-{
-
+int backend_init(XRESOURCES* res, CONFIG* config){
 	res->gl_context = glXCreateContext(res->display, &(res->visual_info), NULL, True);
+	int major = 0, minor = 0;
 
-	if( res->gl_context == 0L)
-	{
+	if(res->gl_context == 0L){
 		fprintf(stderr,"GLXContext is null" );
 	}
 
-	glXMakeContextCurrent( res->display, res->main, res->main, res->gl_context );
-
-	int major = 0, minor = 0;
+	glXMakeContextCurrent(res->display, res->main, res->main, res->gl_context);
 	glXQueryVersion( res->display, &major, &minor);
-	printf( "Major: %d Minor: %d\n", major, minor);
+	fprintf(stderr, "Major: %d Minor: %d\n", major, minor);
 
 	//glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
-	if( err != GLEW_OK )
-	{
-		fprintf(stderr, glewGetErrorString(err));
-		fprintf(stderr, "\n");
+	if(err != GLEW_OK){
+		fprintf(stderr, "%s\n", glewGetErrorString(err));
 		return 1;
 	}
 
@@ -103,9 +132,6 @@ int backend_init(XRESOURCES* res, CONFIG* config)
 
 	//GOBO Texture
 
-	int gobo_width = 0, gobo_height = 0;
-	unsigned u;
-
 	glGenTextures(1, &res->gobo_texture_ID );
 	glBindTexture( GL_TEXTURE_2D, res->gobo_texture_ID );
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -120,18 +146,18 @@ int backend_init(XRESOURCES* res, CONFIG* config)
 
 	
 	//Get Program ID for Gauss Filter
-	res->fbo_program_ID = create_program(1);
-	res->fbo_program_texture_sampler= glGetUniformLocation( res->fbo_program_ID, "textureSampler");
-	//res->fbo_program_filter 	= glGetUniformLocation( res->fbo_program_ID, "filter");
-	res->fbo_program_attribute	= glGetAttribLocation( res->fbo_program_ID, "vertexCoord");
+	res->fbo_program_ID = backend_compile(filter_vertex, filter_fragment);
+	res->fbo_program_texture_sampler = glGetUniformLocation( res->fbo_program_ID, "textureSampler");
+	//res->fbo_program_filter = glGetUniformLocation( res->fbo_program_ID, "filter");
+	res->fbo_program_attribute = glGetAttribLocation( res->fbo_program_ID, "vertexCoord");
 	
 	//Get Program ID for Gobo
 	res->gobo_last = 10;
-	res->gobo_program_ID 		 = create_program(0);
-	res->gobo_program_texture_sampler= glGetUniformLocation( res->gobo_program_ID, "textureSampler");
-	res->gobo_modelview_ID 		 = glGetUniformLocation( res->gobo_program_ID, "modelview" );
-	res->gobo_program_colormod	 = glGetUniformLocation( res->gobo_program_ID, "colormod" );	
-	res->gobo_program_attribute 	 = glGetAttribLocation( res->gobo_program_ID, "vertexCoord" );
+	res->gobo_program_ID = backend_compile( gobo_vertex, gobo_fragment );
+	res->gobo_program_texture_sampler = glGetUniformLocation( res->gobo_program_ID, "textureSampler");
+	res->gobo_modelview_ID = glGetUniformLocation( res->gobo_program_ID, "modelview" );
+	res->gobo_program_colormod = glGetUniformLocation( res->gobo_program_ID, "colormod" );	
+	res->gobo_program_attribute = glGetAttribLocation( res->gobo_program_ID, "vertexCoord" );
 	return 0;
 }
 

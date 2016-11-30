@@ -1,11 +1,20 @@
 export PREFIX?=/usr
 export DOCDIR?=$(DESTDIR)$(PREFIX)/share/man/man1
 
-.PHONY: all clean
-CFLAGS?=-g -Wall
-LDLIBS?=-lm -lXext -lX11 -lXrender -lGL
+.PHONY: all clean shaders
+xrender: CFLAGS ?= -g -Wall
+opengl: CFLAGS ?= -g -Wall -DOPENGL
+opengl: LDLIBS ?= -lm -lXext -lX11 -lGLEW -lGL
+xrender: LDLIBS ?= -lm -lXext -lX11 -lXrender
 
-all: xlaser xlaser.1.gz
+all: opengl xlaser.1.gz
+
+shaders:
+	$(MAKE) -C shaders
+
+opengl: shaders xlaser
+
+xrender: xlaser
 
 install:
 	install -m 0755 xlaser "$(DESTDIR)$(PREFIX)/bin"
@@ -16,6 +25,7 @@ xlaser.1.gz:
 
 clean:
 	$(RM) xlaser xlaser.1.gz
+	$(MAKE) -C shaders clean
 
 run:
 	valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes ./xlaser sample.conf

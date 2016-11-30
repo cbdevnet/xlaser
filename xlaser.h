@@ -6,15 +6,10 @@
 #include <time.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-//#include <unistd.h>
-//#include <fcntl.h>
-//#include <ctype.h>
-//#include <math.h>
-//#include <errno.h>
+#include <math.h>
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
-//#define OPENGL
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -143,7 +138,10 @@ int usage(char* fn);
 #ifndef OPENGL
 #include "backend_xrender.c"
 #else
-#include "openglprogram.c"
+#include "shaders/filter_fragment.h"
+#include "shaders/filter_vertex.h"
+#include "shaders/gobo_fragment.h"
+#include "shaders/gobo_vertex.h"
 #include "backend_opengl.c"
 #endif
 #include "x11.c"
