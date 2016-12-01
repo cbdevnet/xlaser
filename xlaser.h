@@ -66,13 +66,14 @@ typedef struct /*_XDATA*/ {
 	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 	#else
 	GLXContext gl_context;
-	GLuint fboID;
-	GLuint rbo_depth;
-	GLuint fbo_texture;
+	GLuint fboID[2];
+	GLuint rbo_depth[2];
+	GLuint fbo_texture[2];
 	GLuint fbo_vbo_ID;
 	GLuint fbo_program_ID;
 	GLuint fbo_program_texture_sampler;
 	GLuint fbo_program_filter;
+	GLuint fbo_program_horizontal;
 	GLuint fbo_program_attribute;
 	GLuint gobo_texture_ID;
 	GLuint gobo_program_ID;
@@ -81,6 +82,11 @@ typedef struct /*_XDATA*/ {
 	GLuint gobo_program_attribute;
 	GLuint gobo_modelview_ID;
 	uint8_t gobo_last;
+	GLuint light_program_ID;
+	GLuint light_modelview_ID;
+	GLuint light_program_texture_sampler;
+	GLuint light_program_attribute;
+	GLuint light_program_colormod;
 	#endif
 } XRESOURCES;
 
@@ -142,6 +148,8 @@ int usage(char* fn);
 #include "shaders/filter_vertex.h"
 #include "shaders/gobo_fragment.h"
 #include "shaders/gobo_vertex.h"
+#include "shaders/light_fragment.h"
+#include "shaders/light_vertex.h"
 #include "backend_opengl.c"
 #endif
 #include "x11.c"
