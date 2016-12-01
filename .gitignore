@@ -1,2 +1,4 @@
 xlaser
 xlaser.1.gz
+*.s.h
+shaders/shaders.h
