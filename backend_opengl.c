@@ -146,14 +146,14 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 
 	
 	//Get Program ID for Gauss Filter
-	res->fbo_program_ID = backend_compile(filter_vertex, filter_fragment);
+	res->fbo_program_ID = backend_compile(filter_vertex_shader, filter_fragment_shader);
 	res->fbo_program_texture_sampler = glGetUniformLocation( res->fbo_program_ID, "textureSampler");
 	//res->fbo_program_filter = glGetUniformLocation( res->fbo_program_ID, "filter");
 	res->fbo_program_attribute = glGetAttribLocation( res->fbo_program_ID, "vertexCoord");
 	
 	//Get Program ID for Gobo
 	res->gobo_last = 10;
-	res->gobo_program_ID = backend_compile( gobo_vertex, gobo_fragment );
+	res->gobo_program_ID = backend_compile(gobo_vertex_shader, gobo_fragment_shader);
 	res->gobo_program_texture_sampler = glGetUniformLocation( res->gobo_program_ID, "textureSampler");
 	res->gobo_modelview_ID = glGetUniformLocation( res->gobo_program_ID, "modelview" );
 	res->gobo_program_colormod = glGetUniformLocation( res->gobo_program_ID, "colormod" );	

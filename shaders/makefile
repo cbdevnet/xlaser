@@ -1,18 +1,12 @@
-.PHONY: all clean shaders
+.PHONY: all clean
 
-all: filter_fragment.h filter_vertex.h gobo_fragment.h gobo_vertex.h
-
-filter_fragment.h: filter.fragment
+%.s.h :: %.shader
 	xxd -i $< > $@
 
-filter_vertex.h: filter.vertex
-	xxd -i $< > $@
-
-gobo_fragment.h: gobo.fragment
-	xxd -i $< > $@
-
-gobo_vertex.h: gobo.vertex
-	xxd -i $< > $@
+all: shaders.h
+	
+shaders.h: filter_fragment.s.h filter_vertex.s.h gobo_fragment.s.h gobo_vertex.s.h 
+	cat *.s.h > $@
 
 clean:
 	$(RM) *.h

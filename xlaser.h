@@ -138,10 +138,7 @@ int usage(char* fn);
 #ifndef OPENGL
 #include "backend_xrender.c"
 #else
-#include "shaders/filter_fragment.h"
-#include "shaders/filter_vertex.h"
-#include "shaders/gobo_fragment.h"
-#include "shaders/gobo_vertex.h"
+#include "shaders/shaders.h"
 #include "backend_opengl.c"
 #endif
 #include "x11.c"
