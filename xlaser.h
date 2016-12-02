@@ -10,27 +10,27 @@
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
+#define DMX_CHANNELS 16
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 
-#ifndef OPENGL
+#ifdef OPENGL
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#else
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrender.h>
 #define BLUR_KERNEL_DIM 3
 #define BLUR_SIGMA 20.0
 #define BLUR_CONSTANT 4
-#else
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 #endif
 
 #include "xfds.h"
 
 volatile sig_atomic_t abort_signaled = 0;
-
 
 typedef struct /*_GOBO*/ {
 	int width;
@@ -84,10 +84,17 @@ typedef struct /*_XDATA*/ {
 	#endif
 } XRESOURCES;
 
-#define DMX_CHANNELS 16
+typedef struct /*_CHANNEL_CFG*/ {
+	bool fixed;
+	uint16_t source;
+	uint8_t min;
+	uint8_t max;
+} CHANNEL_CONFIG;
+
 typedef struct /*XLASER_CFG*/ {
 	uint16_t dmx_address;
-	uint8_t dmx_channels[DMX_CHANNELS];
+	uint8_t dmx_data[DMX_CHANNELS];
+	CHANNEL_CONFIG dmx_config[DMX_CHANNELS];
 	uint8_t art_net;
 	uint8_t art_subUni;
 	uint8_t art_universe;

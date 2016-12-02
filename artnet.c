@@ -184,8 +184,8 @@ int artnet_output_handler(CONFIG* config, ArtNetPacket* packet) {
 		return -1;
 	}
 
-	memcpy(config->dmx_channels, dmx_packet->data + config->dmx_address - 1, DMX_CHANNELS);
-	print_dmx_output(config->dmx_channels, DMX_CHANNELS);
+	memcpy(config->dmx_data, dmx_packet->data + config->dmx_address - 1, DMX_CHANNELS);
+	print_dmx_output(config->dmx_data, DMX_CHANNELS);
 
 	return 0;
 }

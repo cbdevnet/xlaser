@@ -6,3 +6,6 @@ Fix pixmap clearing when moving from big to small gobo
 Mask-repeat for prism?
 Manpage
 Fail from config / sanity check config!
+
+Aggregate data events for vsync
+Preprocess DMX data with fix/min/max/inverted

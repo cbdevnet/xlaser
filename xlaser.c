@@ -14,6 +14,7 @@ int getHelp() {
 }
 
 int main(int argc, char** argv){
+	unsigned u;
 	CONFIG config = {
 		.dmx_address = 0,
 		.windowed = false,
@@ -24,6 +25,13 @@ int main(int argc, char** argv){
 
 	XRESOURCES xres = {};
 	printf("%s starting up\n", XLASER_VERSION);
+
+	//initialize channel mapping configuration
+	for(u = 0; u < DMX_CHANNELS; u++){
+		config.dmx_config[u].source = u;
+		config.dmx_config[u].min = 0;
+		config.dmx_config[u].max = 255;
+	}
 
 	char* invalid_arguments[argc];
 	int invalid_arguments_len = parse_args(&config, argc, argv, invalid_arguments);
