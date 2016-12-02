@@ -86,6 +86,7 @@ typedef struct /*_XDATA*/ {
 
 typedef struct /*_CHANNEL_CFG*/ {
 	bool fixed;
+	bool inverted;
 	uint16_t source;
 	uint8_t min;
 	uint8_t max;
@@ -129,6 +130,23 @@ enum /*DMX_CHANNEL*/ {
 	ROTATION = 11,
 	ROTATION_SPEED = 12,
 	FOCUS = 13
+};
+
+const char* CHANNEL_NAME[DMX_CHANNELS] = {
+	[PAN] = "pan",
+	[PAN_FINE] = "panfine",
+	[TILT] = "tilt",
+	[TILT_FINE] = "tiltfine",
+	[RED] = "red",
+	[GREEN] = "green",
+	[BLUE] = "blue",
+	[DIMMER] = "dimmer",
+	[SHUTTER] = "shutter",
+	[GOBO] = "gobo",
+	[ZOOM] = "zoom",
+	[ROTATION] = "rotation",
+	[ROTATION_SPEED] = "rotationspeed",
+	[FOCUS] = "focus"
 };
 
 int usage(char* fn);
