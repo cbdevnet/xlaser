@@ -159,6 +159,8 @@ int artnet_artpoll_handler(CONFIG* config, uint8_t* buf, const struct sockaddr* 
 }
 
 int artnet_output_handler(CONFIG* config, ArtNetPacket* packet) {
+	unsigned u;
+	double scale_factor = 0.0;
 	ArtDmxPacket* dmx_packet = (ArtDmxPacket*)packet;
 
 	dmx_packet->length = be16toh(dmx_packet->length);
@@ -184,7 +186,26 @@ int artnet_output_handler(CONFIG* config, ArtNetPacket* packet) {
 		return -1;
 	}
 
-	memcpy(config->dmx_data, dmx_packet->data + config->dmx_address - 1, DMX_CHANNELS);
+	//memcpy(config->dmx_data, dmx_packet->data + config->dmx_address - 1, DMX_CHANNELS);
+	//handle remapping
+	for(u = 0; u < DMX_CHANNELS; u++){
+		if(!config->dmx_config[u].fixed){
+			//apply source
+			config->dmx_data[u] = dmx_packet->data[config->dmx_address - 1 + config->dmx_config[u].source];
+			//apply inversion
+			if(config->dmx_config[u].inverted){
+				config->dmx_data[u] = 255 - config->dmx_data[u];
+			}
+			//apply scaling
+			if(config->dmx_config[u].max != 255 || config->dmx_config[u].min){
+				scale_factor = (float)config->dmx_data[u] / 255.0;
+				config->dmx_data[u] = config->dmx_config[u].min + (config->dmx_config[u].max - config->dmx_config[u].min) * scale_factor;
+			}
+		}
+		else{
+			config->dmx_data[u] = config->dmx_config[u].min;
+		}
+	}
 	print_dmx_output(config->dmx_data, DMX_CHANNELS);
 
 	return 0;
