@@ -74,7 +74,7 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	//glewExperimental = GL_TRUE;
 	glew_err = glewInit();
 	if(glew_err != GLEW_OK){
-		fprintf(stderr, "Failed to initialize glew: %s\n", glewGetErrorString(err));
+		fprintf(stderr, "Failed to initialize glew: %s\n", glewGetErrorString(glew_err));
 		return -1;
 	}
 

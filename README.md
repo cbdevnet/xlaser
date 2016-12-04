@@ -115,7 +115,7 @@ A remap argument may consist of one or more of the following parts
 
 ### ArtNet input
 Most professional lighting desks can be configured to output one or more universes
-to an ethernet port via multiple protocols. XLaser requires ArtNet broad- or unicasted
+to an ethernet port via multiple protocols. XLaser requires broad- or unicasted
 ArtNet as input. Please report any problems encountered with a desk to the Github issues section.
 
 #### Tested desks
