@@ -160,15 +160,13 @@ int parse_config(CONFIG* config, char* filepath){
 	EConfig* econfig = econfig_init(filepath, config);
 
 	unsigned artNetCat = econfig_addCategory(econfig, "artnet");
-	unsigned dmxCat = econfig_addCategory(econfig, "dmx");
 	unsigned genCat = econfig_addCategory(econfig, "general");
 	unsigned windowCat = econfig_addCategory(econfig, "window");
 	unsigned remapCat = econfig_addCategory(econfig, "remap");
 
 	econfig_addParam(econfig, artNetCat, "net", config_artNet);
 	econfig_addParam(econfig, artNetCat, "subuni", config_artSubUni);
-
-	econfig_addParam(econfig, dmxCat, "address", config_dmxAddress);
+	econfig_addParam(econfig, artNetCat, "address", config_dmxAddress);
 
 	econfig_addParam(econfig, genCat, "bindhost", config_bindhost);
 	econfig_addParam(econfig, genCat, "gobos", config_gobo_folder);

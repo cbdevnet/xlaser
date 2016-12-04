@@ -32,16 +32,92 @@ to functionality.
 * Channel 14: Gobo focus (experimental)
 
 ## Building
-Simply run make.
+XLaser is available with multiple backends (currently XRender and OpenGL).
+The default target, built by running `make` in the project repository, builds
+XLaser with the OpenGL backend.
+
+To select the XRender backend (slower, but might work on older hardware),
+run `make xrender`.
 
 ### Prerequisites (debian)
 * A C compiler
 * libx11-dev
 * x11proto-xext-dev
-* x11proto-render-dev
+* For the XRender backend
+	* x11proto-render-dev
+* For the OpenGL backend
+	* libglew-dev
+	* libgl1-mesa-dev
 
 ## Running
+Basically, edit `sample.conf` to match your setup and run `xlaser /path/to/your.conf`.
+Optionally override the starting address with the ``-d <address>`` parameter (useful to start multiple instances from one configuration file)
 
-* Edit sample.conf to match your setup
-* Run ``xlaser /path/to/configuration.file``
-* Optionally override the starting address with the ``-d <address>`` parameter (useful to start multiple instances from one configuration file)
+### Configuration file
+The configuration file is split into multiple sections, which may appear in any order in the file.
+
+#### The `general` section
+Controls general behaviour.
+
+| Option | Example value | Description |
+| ------ |-------------| ----- |
+| `bindhost` | `*` | Which interface to listen for ArtNet data on |
+| `gobos` | `gobos/` | Where to look for gobo images |
+
+#### The `window` section
+X11 window parameters.
+
+| Option | Example value | Description |
+| ------ |-------------| ----- |
+| `windowed` | `true` | Do not initially fullscreen the window |
+| `width` | `800` | Initial window width (when windowed) |
+| `height` | `600` | Initial window height (when windowed) |
+| `x_offset` | `100` | Currently not implemented |
+| `y_offset` | `100` | Currently not implemented |
+
+#### The `artnet` section
+ArtNet control data input setup.
+
+| Option | Example value | Description |
+| ------ |-------------| ----- |
+| `net` | `0` | The artnet `net` parameter for this fixture |
+| `subuni` | `0` | The artnet `subnet` parameter for this fixture |
+| `address` | `1` | The dmx start address (1-512) |
+
+#### The `remap` section
+Reassign control channels (for example to emulate other fixtures).
+
+List of remappable channel names
+* pan
+* panfine
+* tilt
+* tiltfine
+* red
+* green
+* blue
+* dimmer
+* shutter
+* gobo
+* zoom
+* rotation
+* rotationspeed
+* focus
+
+A remap argument may consist of one or more of the following parts
+
+| Option | Parameter | Example | Description |
+|--------|-----------|---------|-------------|
+| `fixed` | value  | `fixed 123`|Channel is at fixed value continuously|
+| `source`| offset | `source 0` | Channel value is read from another channel (given as an offset from the base address)|
+|`min` | value | `min 0` | Minimum channel value. The value is interpolated from the full channel range |
+|`max` | value | `max 127` | Maximum channel interpolation value. |
+|`inverted` | none | `inverted` | Invert channel values |
+
+### ArtNet input
+Most professional lighting desks can be configured to output one or more universes
+to an ethernet port via multiple protocols. XLaser requires ArtNet broad- or unicasted
+ArtNet as input. Please report any problems encountered with a desk to the Github issues section.
+
+#### Tested desks
+* GLP Creation2 (+ OnPC)
+* MA Lighting GrandMA2 OnPC
