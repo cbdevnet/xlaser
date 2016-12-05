@@ -65,7 +65,7 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 
 	printf("GL VERSION: %s\n", glGetString(GL_VERSION) );
 
-	glClearColor( 0.f, 0.f, 0.f, 1.f );
+	glClearColor( 0.f, 0.f, 0.f, 0.f );
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     	//Create VAO and ignore it
@@ -159,7 +159,7 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	res->gobo_program_ID = backend_compile( gobo_vertex, gobo_fragment );
 	res->gobo_program_texture_sampler = glGetUniformLocation( res->gobo_program_ID, "textureSampler");
 	res->gobo_modelview_ID = glGetUniformLocation( res->gobo_program_ID, "modelview" );
-	res->gobo_program_colormod = glGetUniformLocation( res->gobo_program_ID, "colormod" );	
+	res->gobo_program_colormod = glGetUniformLocation( res->gobo_program_ID, "colormod" );
 	res->gobo_program_attribute = glGetAttribLocation( res->gobo_program_ID, "vertexCoord" );
 
 	//Light Program
@@ -169,6 +169,14 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	res->light_modelview_ID = glGetUniformLocation( res->light_program_ID, "modelview" );
 	res->light_program_colormod = glGetUniformLocation( res->light_program_ID, "colormod" );
 	res->light_program_attribute = glGetAttribLocation( res->light_program_ID, "vertexCoord" );
+	
+	//HDR Program
+	fprintf( stderr, "HDR_Program\n");
+	res->hdr_program_ID = backend_compile( hdr_vertex, hdr_fragment );
+	res->hdr_texture_sampler_light = glGetUniformLocation( res->hdr_program_ID, "blur" );
+	res->hdr_texture_sampler_gobo = glGetUniformLocation( res->hdr_program_ID, "scene" );
+	res->hdr_exposure = glGetUniformLocation( res->hdr_program_ID, "exposure" );
+	res->hdr_attribute = glGetAttribLocation( res->hdr_program_ID, "vertexCoord" );
 	return 0;
 }
 
@@ -209,15 +217,6 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 	{
 		
 	}
-	
-	glBindTexture( GL_TEXTURE_2D, xres->gobo_texture_ID );
-	if( selected_gobo != xres->gobo_last )
-	{
-		xres->gobo_last = selected_gobo;
-
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, xres->gobo[xres->gobo_last].width, xres->gobo[xres->gobo_last].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, xres->gobo[xres->gobo_last].data );
-		fprintf(stderr,"Changing gobo\n");
-	}
 	long shutter_offset = 0, shutter_interval = 0;
 	if(channels[SHUTTER]){
 		if(channels[SHUTTER] >= 1 && channels[SHUTTER] <= 127){
@@ -242,7 +241,6 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 	const double angle = M_PI * 2 *((double) (channels[ROTATION] / 255.0));
 	const double cos_a = cos(angle);
 	const double sin_a = sin(angle);
-	const double win_scale = (double)xres->window_height/(double)xres->window_width;
 	double window_x_scale = scaling_factor;
 	double window_y_scale = scaling_factor;
 
@@ -262,33 +260,26 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 		{0,0,1,0},
 		{x_pos,y_pos,0,1}
 	};
-	glUseProgram( xres->gobo_program_ID );
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	glUniformMatrix4fv( xres->gobo_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));
-	glUniform1i( xres->gobo_program_texture_sampler, 0 );
-	glUniform4f( xres->gobo_program_colormod, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0, 0.0);
-	glEnableVertexAttribArray( xres->gobo_program_attribute );
-	glBindBuffer( GL_ARRAY_BUFFER, xres->fbo_vbo_ID );
-	glVertexAttribPointer(
-		xres->gobo_program_attribute,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		(void*)0
-	);
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-	glDisableVertexAttribArray( xres->gobo_program_attribute );
-	
+	//Active Textures
+	glActiveTexture( GL_TEXTURE0 );	
+	glBindTexture( GL_TEXTURE_2D, xres->gobo_texture_ID );
+	if( selected_gobo != xres->gobo_last )
+	{
+		xres->gobo_last = selected_gobo;
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, xres->gobo[xres->gobo_last].width, xres->gobo[xres->gobo_last].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, xres->gobo[xres->gobo_last].data );
+		fprintf(stderr,"Changing gobo\n");
+	}
+
+	//Draw Lightmap into Framebuffer 0
 	glUseProgram( xres->light_program_ID );
-	glUniform1i( xres->light_program_texture_sampler, 0 );
-	glUniformMatrix4fv( xres->light_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));	
-	glUniform4f( xres->gobo_program_colormod, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0, 0.0);
 
 	glBindFramebuffer( GL_FRAMEBUFFER, xres->fboID[0] );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	
+	glUniform1i( xres->light_program_texture_sampler, 0 );
+	glUniformMatrix4fv( xres->light_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));	
+	glUniform4f( xres->light_program_colormod, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0, 0.0);
 
 	glEnableVertexAttribArray( xres->light_program_attribute );
 	glBindBuffer( GL_ARRAY_BUFFER, xres->fbo_vbo_ID );
@@ -303,6 +294,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	glDisableVertexAttribArray( xres->light_program_attribute );
 	
+	//Draw Lightmap through Pingpong Buffers
 	glUseProgram( xres->fbo_program_ID );
 	glUniform1i( xres->fbo_program_texture_sampler, 0 );
 	glEnableVertexAttribArray( xres->fbo_program_attribute );
@@ -312,7 +304,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 		GL_FLOAT,
 		GL_FALSE,
 		0,
-		0
+		(void*)0
 	);
 
 	for( int i = 0; i < 1; ++i ){
@@ -329,11 +321,54 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels)
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 	}
-	glBindTexture( GL_TEXTURE_2D, xres->fbo_texture[0] );
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );	
-
 	glDisableVertexAttribArray( xres->fbo_program_attribute );
+	//Current Lightmapblur is in Framebuffer 0	
+	
+	//Draw Standard Gobo to Framebuffer 1
+	glBindFramebuffer( GL_FRAMEBUFFER, xres->fboID[1] );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glUseProgram( xres->gobo_program_ID );
+	glUniform1i( xres->gobo_program_texture_sampler, 0 );
+	glUniformMatrix4fv( xres->gobo_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));	
+	glUniform4f( xres->gobo_program_colormod, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0, 0.0);
+	glBindTexture( GL_TEXTURE_2D, xres->gobo_texture_ID );
+	glEnableVertexAttribArray( xres->gobo_program_attribute );
+	glVertexAttribPointer(
+		xres->gobo_program_attribute,	
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		(void*)0
+	);
+
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	glDisableVertexAttribArray( xres->gobo_program_attribute );
+	
+
+	//Draw Standard Gobo[2] and Blurred Lightmap[0] into MainFramebuffer
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glBindTexture( GL_TEXTURE_2D, xres->fbo_texture[0] );
+	glActiveTexture( GL_TEXTURE1 );
+	glBindTexture( GL_TEXTURE_2D, xres->fbo_texture[1] );
+
+	glUniform1i( xres->hdr_texture_sampler_light, 0 );
+	glUniform1i( xres->hdr_texture_sampler_gobo, 1 );
+	glUniform1f( xres->hdr_exposure, 1.0 );
+
+	glEnableVertexAttribArray( xres->hdr_attribute );
+	glVertexAttribPointer(
+		xres->hdr_attribute,	
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		(void*)0
+	);
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	glDisableVertexAttribArray( xres->hdr_attribute );
+
 
 	
 	glXSwapBuffers( xres->display, xres->main );
@@ -355,5 +390,4 @@ void backend_free(XRESOURCES* res)
 	glDeleteProgram( res->light_program_ID );
 
 	glXDestroyContext( res->display, res->gl_context );
-	//XFreeGC(res->display, res->window_gc);
 }

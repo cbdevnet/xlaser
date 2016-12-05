@@ -72,7 +72,6 @@ typedef struct /*_XDATA*/ {
 	GLuint fbo_vbo_ID;
 	GLuint fbo_program_ID;
 	GLuint fbo_program_texture_sampler;
-	GLuint fbo_program_filter;
 	GLuint fbo_program_horizontal;
 	GLuint fbo_program_attribute;
 	GLuint gobo_texture_ID;
@@ -87,6 +86,11 @@ typedef struct /*_XDATA*/ {
 	GLuint light_program_texture_sampler;
 	GLuint light_program_attribute;
 	GLuint light_program_colormod;
+	GLuint hdr_program_ID;
+	GLuint hdr_texture_sampler_light;
+	GLuint hdr_texture_sampler_gobo;
+	GLuint hdr_attribute;
+	GLuint hdr_exposure;
 	#endif
 } XRESOURCES;
 
@@ -150,6 +154,8 @@ int usage(char* fn);
 #include "shaders/gobo_vertex.h"
 #include "shaders/light_fragment.h"
 #include "shaders/light_vertex.h"
+#include "shaders/hdr_vertex.h"
+#include "shaders/hdr_fragment.h"
 #include "backend_opengl.c"
 #endif
 #include "x11.c"
