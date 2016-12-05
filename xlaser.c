@@ -14,6 +14,7 @@ int getHelp() {
 }
 
 int main(int argc, char** argv){
+	unsigned u;
 	CONFIG config = {
 		.dmx_address = 0,
 		.windowed = false,
@@ -24,6 +25,13 @@ int main(int argc, char** argv){
 
 	XRESOURCES xres = {};
 	printf("%s starting up\n", XLASER_VERSION);
+
+	//initialize channel mapping configuration
+	for(u = 0; u < DMX_CHANNELS; u++){
+		config.dmx_config[u].source = u;
+		config.dmx_config[u].min = 0;
+		config.dmx_config[u].max = 255;
+	}
 
 	char* invalid_arguments[argc];
 	int invalid_arguments_len = parse_args(&config, argc, argv, invalid_arguments);
@@ -36,7 +44,10 @@ int main(int argc, char** argv){
 		exit(usage(argv[0]));
 	}
 
-	parse_config(&config, invalid_arguments[0]);
+	if(parse_config(&config, invalid_arguments[0]) < 0){
+		fprintf(stderr, "Failed to parse configuration file\n");
+		exit(usage(argv[0]));
+	}
 
 	//TODO sanity check config
 	//TODO set up signal handlers

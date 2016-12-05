@@ -73,10 +73,10 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 			}
 		}
 
-		if(exposed || config->dmx_channels[SHUTTER] != 0){
+		if(exposed || config->dmx_data[SHUTTER] != 0){
 			fprintf(stderr, "Window exposed, drawing\n");
 			//FIXME this might loop
-			if(xlaser_render(xres, config->dmx_channels) < 0){
+			if(xlaser_render(xres, config->dmx_data) < 0){
 				fprintf(stderr, "Render procedure failed\n");
 			}
 			//set the last render timer
@@ -96,8 +96,8 @@ int xlaser(XRESOURCES* xres, CONFIG* config){
 		FD_ZERO(&readfds);
 		maxfd = -1;
 		//when using the shutter feature, cycle faster
-		tv.tv_sec = (config->dmx_channels[SHUTTER] == 0) ? 1:0;
-		tv.tv_usec = (config->dmx_channels[SHUTTER] == 0) ? 0:1000;
+		tv.tv_sec = (config->dmx_data[SHUTTER] == 0) ? 1:0;
+		tv.tv_usec = (config->dmx_data[SHUTTER] == 0) ? 0:1000;
 
 		for(i = 0; i < xres->xfds.size; i++){
 			FD_SET(xres->xfds.fds[i], &readfds);

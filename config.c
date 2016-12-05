@@ -73,6 +73,71 @@ int config_gobo_folder(const char* category, char* key, char* value, EConfig* ec
 	return 0;
 }
 
+int config_remap(const char* category, char* key, char* value, EConfig* econfig, CONFIG* config){
+	unsigned u;
+	char* token = NULL;
+	for(u = 0; u < DMX_CHANNELS; u++){
+		if(value && CHANNEL_NAME[u] && !strcmp(CHANNEL_NAME[u], key)){
+			//FIXME can econfig handle this?
+			token = strtok(value, " ");
+			do{
+				if(!strcmp(token, "fixed")){
+					config->dmx_config[u].fixed = true;
+					token = strtok(NULL, " ");
+					if(token){
+						config->dmx_config[u].min = strtoul(token, NULL, 0);
+					}
+					else{
+						fprintf(stderr, "Parameter expected for keyword\n");
+						return -1;
+					}
+				}
+				else if(!strcmp(token, "source")){
+					token = strtok(NULL, " ");
+					if(token){
+						config->dmx_config[u].source = strtoul(token, NULL, 0);
+					}
+					else{
+						fprintf(stderr, "Parameter expected for keyword\n");
+						return -1;
+					}
+				}
+				else if(!strcmp(token, "min")){
+					token = strtok(NULL, " ");
+					if(token){
+						config->dmx_config[u].min = strtoul(token, NULL, 0);
+					}
+					else{
+						fprintf(stderr, "Parameter expected for keyword\n");
+						return -1;
+					}
+				}
+				else if(!strcmp(token, "max")){
+					token = strtok(NULL, " ");
+					if(token){
+						config->dmx_config[u].max = strtoul(token, NULL, 0);
+					}
+					else{
+						fprintf(stderr, "Parameter expected for keyword\n");
+						return -1;
+					}
+				}
+				else if(!strcmp(token, "inverted")){
+					config->dmx_config[u].inverted = true;
+				}
+
+				token = strtok(NULL, " ");
+			}
+			while(token);
+
+			fprintf(stderr, "Remapped channel %s\n", key);
+			return 0;
+		}
+	}
+	fprintf(stderr, "No channel with name %s found to remap\n", key);
+	return -1;
+}
+
 int arg_address(int argc, char** argv, CONFIG* config){
 	config->dmx_address = strtoul(argv[1], NULL, 10);
 	if (config->dmx_address == 0) {
@@ -91,17 +156,17 @@ int arg_help(int argc, char** argv, CONFIG* config){
 }
 
 int parse_config(CONFIG* config, char* filepath){
+	unsigned u;
 	EConfig* econfig = econfig_init(filepath, config);
 
 	unsigned artNetCat = econfig_addCategory(econfig, "artnet");
-	unsigned dmxCat = econfig_addCategory(econfig, "dmx");
 	unsigned genCat = econfig_addCategory(econfig, "general");
 	unsigned windowCat = econfig_addCategory(econfig, "window");
+	unsigned remapCat = econfig_addCategory(econfig, "remap");
 
 	econfig_addParam(econfig, artNetCat, "net", config_artNet);
 	econfig_addParam(econfig, artNetCat, "subuni", config_artSubUni);
-
-	econfig_addParam(econfig, dmxCat, "address", config_dmxAddress);
+	econfig_addParam(econfig, artNetCat, "address", config_dmxAddress);
 
 	econfig_addParam(econfig, genCat, "bindhost", config_bindhost);
 	econfig_addParam(econfig, genCat, "gobos", config_gobo_folder);
@@ -111,6 +176,12 @@ int parse_config(CONFIG* config, char* filepath){
 	econfig_addParam(econfig, windowCat, "height", config_height);
 	econfig_addParam(econfig, windowCat, "x_offset", config_x_offset);
 	econfig_addParam(econfig, windowCat, "y_offset", config_y_offset);
+
+	for(u = 0; u < DMX_CHANNELS; u++){
+		if(CHANNEL_NAME[u]){
+			econfig_addParam(econfig, remapCat, CHANNEL_NAME[u], config_remap);
+		}
+	}
 
 	econfig_parse(econfig);
 	econfig_free(econfig);

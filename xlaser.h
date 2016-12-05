@@ -10,27 +10,27 @@
 
 #define XLASER_VERSION "XLaser v1.1"
 #define SHORTNAME "XLaser"
+#define DMX_CHANNELS 16
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 
-#ifndef OPENGL
+#ifdef OPENGL
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#else
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrender.h>
 #define BLUR_KERNEL_DIM 3
 #define BLUR_SIGMA 20.0
 #define BLUR_CONSTANT 4
-#else
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 #endif
 
 #include "xfds.h"
 
 volatile sig_atomic_t abort_signaled = 0;
-
 
 typedef struct /*_GOBO*/ {
 	int width;
@@ -66,13 +66,13 @@ typedef struct /*_XDATA*/ {
 	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 	#else
 	GLXContext gl_context;
-	GLuint fboID[2];
-	GLuint rbo_depth[2];
-	GLuint fbo_texture[2];
+	GLuint fboID;
+	GLuint rbo_depth;
+	GLuint fbo_texture;
 	GLuint fbo_vbo_ID;
 	GLuint fbo_program_ID;
 	GLuint fbo_program_texture_sampler;
-	GLuint fbo_program_horizontal;
+	GLuint fbo_program_filter;
 	GLuint fbo_program_attribute;
 	GLuint gobo_texture_ID;
 	GLuint gobo_program_ID;
@@ -81,23 +81,21 @@ typedef struct /*_XDATA*/ {
 	GLuint gobo_program_attribute;
 	GLuint gobo_modelview_ID;
 	uint8_t gobo_last;
-	GLuint light_program_ID;
-	GLuint light_modelview_ID;
-	GLuint light_program_texture_sampler;
-	GLuint light_program_attribute;
-	GLuint light_program_colormod;
-	GLuint hdr_program_ID;
-	GLuint hdr_texture_sampler_light;
-	GLuint hdr_texture_sampler_gobo;
-	GLuint hdr_attribute;
-	GLuint hdr_exposure;
 	#endif
 } XRESOURCES;
 
-#define DMX_CHANNELS 16
+typedef struct /*_CHANNEL_CFG*/ {
+	bool fixed;
+	bool inverted;
+	uint16_t source;
+	uint8_t min;
+	uint8_t max;
+} CHANNEL_CONFIG;
+
 typedef struct /*XLASER_CFG*/ {
 	uint16_t dmx_address;
-	uint8_t dmx_channels[DMX_CHANNELS];
+	uint8_t dmx_data[DMX_CHANNELS];
+	CHANNEL_CONFIG dmx_config[DMX_CHANNELS];
 	uint8_t art_net;
 	uint8_t art_subUni;
 	uint8_t art_universe;
@@ -134,6 +132,23 @@ enum /*DMX_CHANNEL*/ {
 	FOCUS = 13
 };
 
+const char* CHANNEL_NAME[DMX_CHANNELS] = {
+	[PAN] = "pan",
+	[PAN_FINE] = "panfine",
+	[TILT] = "tilt",
+	[TILT_FINE] = "tiltfine",
+	[RED] = "red",
+	[GREEN] = "green",
+	[BLUE] = "blue",
+	[DIMMER] = "dimmer",
+	[SHUTTER] = "shutter",
+	[GOBO] = "gobo",
+	[ZOOM] = "zoom",
+	[ROTATION] = "rotation",
+	[ROTATION_SPEED] = "rotationspeed",
+	[FOCUS] = "focus"
+};
+
 int usage(char* fn);
 
 #include "easy_config.h"
@@ -148,14 +163,7 @@ int usage(char* fn);
 #ifndef OPENGL
 #include "backend_xrender.c"
 #else
-#include "shaders/filter_fragment.h"
-#include "shaders/filter_vertex.h"
-#include "shaders/gobo_fragment.h"
-#include "shaders/gobo_vertex.h"
-#include "shaders/light_fragment.h"
-#include "shaders/light_vertex.h"
-#include "shaders/hdr_vertex.h"
-#include "shaders/hdr_fragment.h"
+#include "shaders/shaders.h"
 #include "backend_opengl.c"
 #endif
 #include "x11.c"
