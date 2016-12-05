@@ -42,6 +42,18 @@ typedef struct /*_GOBO*/ {
 	uint8_t* data;
 } GOBO_IMG;
 
+#ifdef OPENGL
+typedef struct /*PROGRAM IDs*/{
+	GLuint program;
+	GLuint attribute;
+	GLuint sampler[2];
+	GLuint color;
+	GLuint modelview;
+	GLuint horizontal;
+	GLuint exposure;
+}PROGRAM_ID;
+#endif
+
 typedef struct /*_XDATA*/ {
 	int screen;
 	Display* display;
@@ -66,13 +78,13 @@ typedef struct /*_XDATA*/ {
 	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
 	#else
 	GLXContext gl_context;
-	GLuint fboID;
-	GLuint rbo_depth;
-	GLuint fbo_texture;
+	GLuint fboID[2];
+	GLuint rbo_depth[2];
+	GLuint fbo_texture[2];
 	GLuint fbo_vbo_ID;
+	PROGRAM_ID program_id[4];
 	GLuint fbo_program_ID;
 	GLuint fbo_program_texture_sampler;
-	GLuint fbo_program_filter;
 	GLuint fbo_program_attribute;
 	GLuint gobo_texture_ID;
 	GLuint gobo_program_ID;
