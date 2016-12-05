@@ -156,7 +156,7 @@ int usage(char* fn);
 #include "easy_args.h"
 #include "easy_args.c"
 #include "config.c"
-#include "network.h"
+#include "network.c"
 #include "artnet.h"
 #include "artnet.c"
 #include "xfds.c"
