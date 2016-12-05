@@ -50,7 +50,7 @@ run `make xrender`.
 	* libgl1-mesa-dev
 
 ## Running
-Basically, edit `sample.conf` to match your setup and run `xlaser /path/to/your.conf`.
+Basically, edit `configs/sample.conf` to match your setup and run `xlaser /path/to/your.conf`.
 Optionally override the starting address with the ``-d <address>`` parameter (useful to start multiple instances from one configuration file)
 
 ### Configuration file

@@ -28,4 +28,4 @@ clean:
 	$(MAKE) -C shaders clean
 
 run:
-	valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes ./xlaser sample.conf
+	valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes ./xlaser configs/sample.conf
