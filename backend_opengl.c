@@ -9,7 +9,6 @@ int backend_compile_shader(GLuint shader_id, unsigned char** shader_source, ssiz
 	glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
 	if(result != GL_TRUE){
 		fprintf(stderr, "Failed to compile shader\n");
-		return 1;
 	}
 
 	glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
@@ -52,7 +51,7 @@ GLuint backend_compile_program(unsigned char* vertex_source, ssize_t vertex_leng
 int backend_init(XRESOURCES* res, CONFIG* config){
 	int major = 0, minor = 0;
 	GLenum glew_err;
-	//target quad
+	
 	GLfloat target_quad[] = {
 		-1, -1,
 		1, -1,
@@ -75,13 +74,13 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	glew_err = glewInit();
 	if(glew_err != GLEW_OK){
 		fprintf(stderr, "Failed to initialize glew: %s\n", glewGetErrorString(glew_err));
-		return -1;
+		return -2;
 	}
 
 	printf("OpenGL implementation: %s\n", glGetString(GL_VERSION));
 
 	glClearColor(0.f, 0.f, 0.f, 1.f);
-    	glClear(GL_COLOR_BUFFER_BIT);
+    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     	//Create VAO and ignore it
     	GLuint VertexArrayID;
@@ -98,36 +97,39 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 
 	//Target texture for render
 	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(1, &res->fbo_texture);
-	glBindTexture( GL_TEXTURE_2D, res->fbo_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, res->window_width, res->window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0L);
-
-	//RENDER TO TEXTURE
-	//Generate Framebuffer and attach Renderbuffer
-	glGenFramebuffers(1, &res->fboID);
-	glBindFramebuffer(GL_FRAMEBUFFER, res->fboID);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, res->fbo_texture, 0);
-
-	glGenRenderbuffers(1, &res->rbo_depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, res->rbo_depth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, res->window_width, res->window_height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, res->rbo_depth);
+	glGenTextures(2, res->fbo_texture);
+	glGenFramebuffers(2, res->fboID);
+	glGenRenderbuffers(2, res->rbo_depth);
 
 	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1, DrawBuffers);
+	
+	for(int i = 0; i < 2; ++i){
+		glBindTexture( GL_TEXTURE_2D, res->fbo_texture[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	glBindFramebuffer(GL_FRAMEBUFFER , 0);
+		//Generate Framebuffer and attach Renderbuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, res->fboID[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, res->fbo_texture[i], 0);
+		
+		glBindRenderbuffer(GL_RENDERBUFFER, res->rbo_depth[i]);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, res->window_width, res->window_height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, res->rbo_depth[i]);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, res->window_width, res->window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0L);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenBuffers(1, &res->fbo_vbo_ID);
 	glBindBuffer(GL_ARRAY_BUFFER, res->fbo_vbo_ID);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(target_quad), target_quad, GL_STATIC_DRAW);
 	//We only use one Arraybuffer, so no need to unbind it.
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//GOBO Texture
 	glGenTextures(1, &res->gobo_texture_ID);
@@ -138,35 +140,48 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	//GOBO DATA TO GPU
-	//glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, res->gobo[0].width, res->gobo[0].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, res->gobo[0].data );
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	//Get Program ID for Gauss Filter
-	res->fbo_program_ID = backend_compile_program(filter_vertex_shader, filter_vertex_shader_len, filter_fragment_shader, filter_fragment_shader_len);
-	res->fbo_program_texture_sampler = glGetUniformLocation(res->fbo_program_ID, "textureSampler");
-	//res->fbo_program_filter = glGetUniformLocation( res->fbo_program_ID, "filter");
-	res->fbo_program_attribute = glGetAttribLocation(res->fbo_program_ID, "vertexCoord");
 
 	//Get Program ID for Gobo
 	res->gobo_last = 10;
-	res->gobo_program_ID = backend_compile_program(gobo_vertex_shader, gobo_vertex_shader_len, gobo_fragment_shader, gobo_fragment_shader_len);
-	res->gobo_program_texture_sampler = glGetUniformLocation(res->gobo_program_ID, "textureSampler");
-	res->gobo_modelview_ID = glGetUniformLocation(res->gobo_program_ID, "modelview");
-	res->gobo_program_colormod = glGetUniformLocation(res->gobo_program_ID, "colormod");
-	res->gobo_program_attribute = glGetAttribLocation(res->gobo_program_ID, "vertexCoord");
+	fprintf(stderr, "Gobo\n");
+	res->program_id[0].program = backend_compile_program(gobo_vertex_shader, gobo_vertex_shader_len, gobo_fragment_shader, gobo_fragment_shader_len);
+	res->program_id[0].sampler[0] = glGetUniformLocation(res->program_id[0].program, "textureSampler");
+	res->program_id[0].modelview = glGetUniformLocation(res->program_id[0].program, "modelview");
+	res->program_id[0].color = glGetUniformLocation(res->program_id[0].program, "colormod");
+	res->program_id[0].attribute = glGetAttribLocation(res->program_id[0].program, "vertexCoord");
+	
+	//Get Program ID for Gauss Filter
+	fprintf(stderr, "Blur\n");
+	res->program_id[1].program = backend_compile_program(filter_vertex_shader, filter_vertex_shader_len, filter_fragment_shader, filter_fragment_shader_len);
+	res->program_id[1].sampler[0] = glGetUniformLocation(res->program_id[1].program, "textureSampler");
+	res->program_id[1].horizontal = glGetUniformLocation(res->program_id[1].program, "horizontal");
+	res->program_id[1].modelview = glGetUniformLocation(res->program_id[1].program, "goboSize");
+	res->program_id[1].attribute = glGetAttribLocation(res->program_id[1].program, "vertexCoord");
+	
+	//Get Program ID for HDR
+	fprintf(stderr, "HDR\n");
+	res->program_id[2].program = backend_compile_program(hdr_vertex_shader, hdr_vertex_shader_len, hdr_fragment_shader, hdr_fragment_shader_len);
+	res->program_id[2].sampler[0] = glGetUniformLocation(res->program_id[2].program, "textureSampler" );
+	res->program_id[2].exposure = glGetUniformLocation( res->program_id[2].program, "exposure" );
+	res->program_id[2].attribute = glGetAttribLocation( res->program_id[2].program, "vertexCoord" );
 	return 0;
 }
 
 int xlaser_reconfigure(XRESOURCES* xres){
-	glBindRenderbuffer( GL_RENDERBUFFER, xres->rbo_depth);
-	glBindTexture(GL_TEXTURE_2D, xres->fbo_texture);
-	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, xres->window_width, xres->window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0L);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, xres->window_width, xres->window_height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, xres->rbo_depth);
+	for(int i = 0; i < 2; ++i){
+		glBindRenderbuffer( GL_RENDERBUFFER, xres->rbo_depth[i]);
+		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[i]);
+		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, xres->window_width, xres->window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0L);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, xres->window_width, xres->window_height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, xres->rbo_depth[i]);
+	}
 	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1, DrawBuffers);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindRenderbuffer( GL_RENDERBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glViewport(0, 0, xres->window_width, xres->window_height);
 	return 0;
 }
@@ -176,6 +191,12 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	long shutter_offset = 0, shutter_interval = 0;
 	double dimmer_factor = (double) channels[DIMMER] / 255.0;
 	uint8_t selected_gobo;
+	double focus = (double) channels[FOCUS] / 255.0;
+
+	if(focus > 1.0){
+		focus = 1.0;
+	}
+	focus = ( exp(focus) - 1.0 ) * 10;
 
 	//floating point error
 	if(scaling_factor > 1.0){
@@ -183,7 +204,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	}
 
 	//gobo fallback selection
-	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
+	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; --selected_gobo){
 	}
 
 	//shutter implementation
@@ -229,11 +250,11 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 		{0,0,1,0},
 		{x_pos,y_pos,0,1}
 	};
-
-	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID);
+	//Lightmap to Frambuffer 0
+	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	glUseProgram(xres->gobo_program_ID);
+	glUseProgram(xres->program_id[0].program);
 	glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
 	if(selected_gobo != xres->gobo_last){
 		xres->gobo_last = selected_gobo;
@@ -242,13 +263,13 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 		fprintf(stderr,"Changing gobo\n");
 	}
 
-	glUniformMatrix4fv(xres->gobo_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));
-	glUniform1i(xres->gobo_program_texture_sampler, 0);
-	glUniform4f(xres->gobo_program_colormod, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0, 0.0);
-	glEnableVertexAttribArray(xres->gobo_program_attribute);
+	glUniformMatrix4fv(xres->program_id[0].modelview, 1, GL_FALSE, &(modelview[0][0]));
+	glUniform1i(xres->program_id[0].sampler[0], 0);
+	glUniform3f(xres->program_id[0].color, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0);
+	glEnableVertexAttribArray(xres->program_id[0].attribute);
 	glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
 	glVertexAttribPointer(
-		xres->gobo_program_attribute,
+		xres->program_id[0].attribute,
 		2,
 		GL_FLOAT,
 		GL_FALSE,
@@ -258,26 +279,59 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glDisableVertexAttribArray(xres->gobo_program_attribute);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(xres->fbo_program_ID);
-	glBindTexture(GL_TEXTURE_2D, xres->fbo_texture);
-	glUniform1i(xres->fbo_program_texture_sampler, 0);
-	glEnableVertexAttribArray(xres->fbo_program_attribute);
+	glDisableVertexAttribArray(xres->program_id[0].attribute);
+	
+	//Blur/Filter Program ping pong 0 to 1 then to 0
+	glUseProgram(xres->program_id[1].program);
+	glUniform1i(xres->program_id[1].sampler[0], 0);
+	glUniform2f(xres->program_id[1].modelview, window_x_scale * xres->window_width, window_y_scale * xres->window_height);
+	glEnableVertexAttribArray(xres->program_id[1].attribute);
 	glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
 	glVertexAttribPointer(
-		xres->fbo_program_attribute,
+		xres->program_id[1].attribute,
 		2,
 		GL_FLOAT,
 		GL_FALSE,
 		0,
 		0
 	);
+	const int pongs = 5;
+	for(int i = 0; i < pongs; ++i){
+		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[1]);
+		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[0]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glUniform1i( xres->program_id[1].horizontal, 0 );
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[0]);
+		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[1]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glUniform1i( xres->program_id[1].horizontal, 1 );
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	}
+	glDisableVertexAttribArray(xres->program_id[1].attribute);
+	//HDR RENDER
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[0]);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glUseProgram( xres->program_id[2].program );
+	glUniform1i(xres->program_id[2].sampler[0], 0);
+	glUniform1f(xres->program_id[2].exposure, focus);
+
+	glEnableVertexAttribArray(xres->program_id[2].attribute);
+	glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
+	glVertexAttribPointer(
+		xres->program_id[2].attribute,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		0
+	);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glDisableVertexAttribArray(xres->fbo_program_attribute);
+	glDisableVertexAttribArray(xres->program_id[2].attribute);
 
 	glXSwapBuffers(xres->display, xres->main);
 	return 0;
@@ -285,12 +339,14 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 }
 
 void backend_free(XRESOURCES* res){
-	glDeleteTextures(1, &res->fbo_texture);
-	glDeleteRenderbuffers(1, &res->rbo_depth);
-	glDeleteFramebuffers(1, &res->fboID);
+
+	glDeleteTextures(2, res->fbo_texture);
+	glDeleteRenderbuffers(2, res->rbo_depth);
+	glDeleteFramebuffers(2, res->fboID);
+
 	glDeleteTextures(1, &res->gobo_texture_ID);
 	glDeleteBuffers(1, &res->fbo_vbo_ID);
-	glDeleteProgram(res->gobo_program_ID);
-	glDeleteProgram(res->fbo_program_ID);
+	for(int i = 0; i < sizeof(res->program_id) / sizeof(PROGRAM_ID); ++i)
+		glDeleteProgram(res->program_id[i].program);
 	glXDestroyContext(res->display, res->gl_context);
 }
