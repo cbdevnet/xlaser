@@ -82,16 +82,8 @@ typedef struct /*_XDATA*/ {
 	GLuint rbo_depth[2];
 	GLuint fbo_texture[2];
 	GLuint fbo_vbo_ID;
-	PROGRAM_ID program_id[4];
-	GLuint fbo_program_ID;
-	GLuint fbo_program_texture_sampler;
-	GLuint fbo_program_attribute;
+	PROGRAM_ID program_id[3];
 	GLuint gobo_texture_ID;
-	GLuint gobo_program_ID;
-	GLuint gobo_program_texture_sampler;
-	GLuint gobo_program_colormod;
-	GLuint gobo_program_attribute;
-	GLuint gobo_modelview_ID;
 	uint8_t gobo_last;
 	#endif
 } XRESOURCES;
@@ -141,7 +133,8 @@ enum /*DMX_CHANNEL*/ {
 	ZOOM = 10,
 	ROTATION = 11,
 	ROTATION_SPEED = 12,
-	FOCUS = 13
+	FOCUS = 13,
+	EXPOSURE = 14
 };
 
 const char* CHANNEL_NAME[DMX_CHANNELS] = {
@@ -158,7 +151,8 @@ const char* CHANNEL_NAME[DMX_CHANNELS] = {
 	[ZOOM] = "zoom",
 	[ROTATION] = "rotation",
 	[ROTATION_SPEED] = "rotationspeed",
-	[FOCUS] = "focus"
+	[FOCUS] = "focus",
+	[EXPOSURE] = "exposure"
 };
 
 int usage(char* fn);
