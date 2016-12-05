@@ -1,8 +1,0 @@
-#version 120
-varying vec2 UV;
-uniform sampler2D textureSampler;
-uniform vec4 colormod;
-void main(){
-	vec4 alpha = texture2D( textureSampler, UV );
-	gl_FragColor = vec4( alpha.w * colormod.xyz, alpha.w );
-}
