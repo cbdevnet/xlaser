@@ -13,7 +13,7 @@ int backend_compile_shader(GLuint shader_id, unsigned char** shader_source){
 	}
 
 	glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
-	if(log_length > 0){
+	if(log_length > 1){ //contrary to the docs, this returns a single newline character upon success (https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetShaderiv.xml)
 		log = calloc(log_length + 1, sizeof(char));
 		glGetShaderInfoLog(shader_id, log_length, NULL, log);
 		fprintf(stderr, "Shader compiler error: %s\n", log);
