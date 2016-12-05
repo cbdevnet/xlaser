@@ -44,7 +44,10 @@ int main(int argc, char** argv){
 		exit(usage(argv[0]));
 	}
 
-	parse_config(&config, invalid_arguments[0]);
+	if(parse_config(&config, invalid_arguments[0]) < 0){
+		fprintf(stderr, "Failed to parse configuration file\n");
+		exit(usage(argv[0]));
+	}
 
 	//TODO sanity check config
 	//TODO set up signal handlers
