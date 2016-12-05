@@ -82,7 +82,7 @@ typedef struct /*_XDATA*/ {
 	GLuint rbo_depth[2];
 	GLuint fbo_texture[2];
 	GLuint fbo_vbo_ID;
-	PROGRAM_ID program_id[3];
+	PROGRAM_ID program_id[4];
 	GLuint gobo_texture_ID;
 	uint8_t gobo_last;
 	#endif
