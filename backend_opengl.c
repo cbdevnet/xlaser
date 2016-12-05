@@ -167,6 +167,7 @@ int xlaser_reconfigure(XRESOURCES* xres){
 	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1, DrawBuffers);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, xres->window_width, xres->window_height);
 	return 0;
 }
 
@@ -183,19 +184,6 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	//gobo fallback selection
 	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(xres->gobo_program_ID);
-	glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
-	if(selected_gobo != xres->gobo_last){
-		//glBindTexture( GL_TEXTURE_2D, xres->gobo_texture_ID );
-		xres->gobo_last = selected_gobo;
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, xres->gobo[xres->gobo_last].width, xres->gobo[xres->gobo_last].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, xres->gobo[xres->gobo_last].data);
-		fprintf(stderr,"Changing gobo\n");
-		//glBindTexture( GL_TEXTURE_2D, xres->gobo_texture_ID );
 	}
 
 	//shutter implementation
@@ -242,6 +230,18 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 		{x_pos,y_pos,0,1}
 	};
 
+	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	glUseProgram(xres->gobo_program_ID);
+	glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
+	if(selected_gobo != xres->gobo_last){
+		xres->gobo_last = selected_gobo;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, xres->gobo[xres->gobo_last].width, xres->gobo[xres->gobo_last].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, xres->gobo[xres->gobo_last].data);
+		fprintf(stderr,"Changing gobo\n");
+	}
+
 	glUniformMatrix4fv(xres->gobo_modelview_ID, 1, GL_FALSE, &(modelview[0][0]));
 	glUniform1i(xres->gobo_program_texture_sampler, 0);
 	glUniform4f(xres->gobo_program_colormod, channels[RED] * dimmer_factor / 255.0, channels[GREEN] * dimmer_factor / 255.0, channels[BLUE] * dimmer_factor /255.0, 0.0);
@@ -258,10 +258,8 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	//glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glDisableVertexAttribArray(xres->gobo_program_attribute);
 
-	//Currently no need for filter
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(xres->fbo_program_ID);
@@ -281,7 +279,6 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glDisableVertexAttribArray(xres->fbo_program_attribute);
 
-	//swap buffers
 	glXSwapBuffers(xres->display, xres->main);
 	return 0;
 
