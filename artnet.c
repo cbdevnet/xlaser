@@ -214,37 +214,44 @@ int artnet_output_handler(CONFIG* config, ArtNetPacket* packet) {
 int artnet_handler(CONFIG* config) {
 	uint8_t data_buffer[ART_INTERNAL_READ_BUFFER];
 	struct sockaddr_storage src_addr;
-	socklen_t src_len = sizeof src_addr;
+	socklen_t src_len = sizeof(src_addr);
 	ArtNetPacket* art_packet = NULL;
+	ssize_t bytes_read;
 
-	ssize_t bytes_read = recvfrom(config->sockfd, &data_buffer, ART_INTERNAL_READ_BUFFER, 0, (struct sockaddr*)&src_addr, &src_len);
+	do{
+		bytes_read = recvfrom(config->sockfd, &data_buffer, ART_INTERNAL_READ_BUFFER, MSG_DONTWAIT, (struct sockaddr*)&src_addr, &src_len);
 
-	if(bytes_read < 0){
-		perror("recvfrom");
-		return -1;
-	} 
-	else if(bytes_read < 8){
-		fprintf(stderr, "Ignoring packet of length %zu\n", bytes_read);
-		return 0;
+		if(bytes_read < 0){
+			if(errno == EAGAIN || errno == EWOULDBLOCK){
+				break;
+			}
+			perror("recvfrom");
+			return -1;
+		}
+		else if(bytes_read < 8){
+			fprintf(stderr, "Ignoring packet of length %zu\n", bytes_read);
+			continue;
+		}
+
+		art_packet = (ArtNetPacket*)data_buffer;
+		if(memcmp(art_packet->id, ART_ID, 8)) {
+			fprintf(stderr, "Header check failed, ignoring\n");
+			continue;
+		}
+
+		printf("Handling %s type data\n", artnet_packet_type(art_packet->opcode));
+		switch(art_packet->opcode) {
+			case ART_OP_POLL:
+				artnet_artpoll_handler(config, data_buffer, (struct sockaddr*)&src_addr, src_len);
+				break;
+			case ART_OP_OUTPUT:
+				artnet_output_handler(config, art_packet);
+				break;
+		}
 	}
+	while(bytes_read >= 0);
 
-	art_packet = (ArtNetPacket*)data_buffer;
-	if(memcmp(art_packet->id, ART_ID, 8)) {
-		fprintf(stderr, "Header check failed, ignoring\n");
-		return 0;
-	}
-
-	printf("Handling %s type data\n", artnet_packet_type(art_packet->opcode));
-	//printf("protVerHi: %d\nprotVerLo: %d\n", art_packet->protVerHi, art_packet->protVerLo);
-	switch(art_packet->opcode) {
-		case ART_OP_POLL:
-			artnet_artpoll_handler(config, data_buffer, (struct sockaddr*)&src_addr, src_len);
-			break;
-		case ART_OP_OUTPUT:
-			artnet_output_handler(config, art_packet);
-			break;
-	}
-
+	fprintf(stderr, "ArtNet handler done\n");
 	return 0;
 }
 
