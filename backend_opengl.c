@@ -1,9 +1,9 @@
-int backend_compile_shader(GLuint shader_id, unsigned char** shader_source){
+int backend_compile_shader(GLuint shader_id, unsigned char** shader_source, ssize_t shader_length){
 	GLint result = GL_FALSE;
 	int log_length;
 	char* log = NULL;
 
-	glShaderSource(shader_id, 1, (const GLchar**)shader_source, NULL);
+	glShaderSource(shader_id, 1, (const GLchar**)shader_source, (const GLint*)&shader_length);
 	glCompileShader(shader_id);
 
 	glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
@@ -23,15 +23,15 @@ int backend_compile_shader(GLuint shader_id, unsigned char** shader_source){
 	return 0;
 }
 
-GLuint backend_compile_program(unsigned char* vertex_source, unsigned char* fragment_source){
+GLuint backend_compile_program(unsigned char* vertex_source, ssize_t vertex_length, unsigned char* fragment_source, ssize_t fragment_length){
 	//create two shader handles and a program handle
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint program_id = glCreateProgram();
 
 	//compile the shaders
-	if(backend_compile_shader(vertex_shader, &vertex_source) 
-			|| backend_compile_shader(fragment_shader, &fragment_source)){
+	if(backend_compile_shader(vertex_shader, &vertex_source, vertex_length)
+			|| backend_compile_shader(fragment_shader, &fragment_source, fragment_length)){
 		return 0;
 	}
 
@@ -142,14 +142,14 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	//Get Program ID for Gauss Filter
-	res->fbo_program_ID = backend_compile_program(filter_vertex_shader, filter_fragment_shader);
+	res->fbo_program_ID = backend_compile_program(filter_vertex_shader, filter_vertex_shader_len, filter_fragment_shader, filter_fragment_shader_len);
 	res->fbo_program_texture_sampler = glGetUniformLocation(res->fbo_program_ID, "textureSampler");
 	//res->fbo_program_filter = glGetUniformLocation( res->fbo_program_ID, "filter");
 	res->fbo_program_attribute = glGetAttribLocation(res->fbo_program_ID, "vertexCoord");
 
 	//Get Program ID for Gobo
 	res->gobo_last = 10;
-	res->gobo_program_ID = backend_compile_program(gobo_vertex_shader, gobo_fragment_shader);
+	res->gobo_program_ID = backend_compile_program(gobo_vertex_shader, gobo_vertex_shader_len, gobo_fragment_shader, gobo_fragment_shader_len);
 	res->gobo_program_texture_sampler = glGetUniformLocation(res->gobo_program_ID, "textureSampler");
 	res->gobo_modelview_ID = glGetUniformLocation(res->gobo_program_ID, "modelview");
 	res->gobo_program_colormod = glGetUniformLocation(res->gobo_program_ID, "colormod");
