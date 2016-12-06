@@ -79,7 +79,7 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 
 	printf("OpenGL implementation: %s\n", glGetString(GL_VERSION));
 
-	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClearColor(0.f, 0.f, 0.f, 0.f);
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     	//Create VAO and ignore it
@@ -268,84 +268,84 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	if(xres->update_last_frame){
 		glViewport(0, 0, xres->window_width * 1.2, xres->window_height * 1.2);
 		xres->update_last_frame = false;	
-	//Lightmap to Frambuffer 0
-	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[0]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glUseProgram(xres->program_id[0].program);
-	glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
-
-	glUniform1i(xres->program_id[0].sampler[0], 0);
-	glUniform3f(xres->program_id[0].color, 1.0,1.0,1.0);
-	glEnableVertexAttribArray(xres->program_id[0].attribute);
-	glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
-	glVertexAttribPointer(
-		xres->program_id[0].attribute,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		(void*)0
-	);
-
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDisableVertexAttribArray(xres->program_id[0].attribute);
-	
-	//Blur/Filter Program ping pong 0 to 1 then to 0
-	glUseProgram(xres->program_id[1].program);
-	glUniform1i(xres->program_id[1].sampler[0], 0);
-	glUniform2f(xres->program_id[1].modelview, window_x_scale * xres->window_width, window_y_scale * xres->window_height);
-	glEnableVertexAttribArray(xres->program_id[1].attribute);
-	glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
-	glVertexAttribPointer(
-		xres->program_id[1].attribute,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		0
-	);
-	int i;
-	for(i = 0; i < pongs; ++i){
-		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[1]);
-		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[0]);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUniform1i( xres->program_id[1].horizontal, 0 );
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
+		//Lightmap to Frambuffer 0
 		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[0]);
-		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[1]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+		glUseProgram(xres->program_id[0].program);
+		glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
 
-		glUniform1i( xres->program_id[1].horizontal, 1 );
+		glUniform1i(xres->program_id[0].sampler[0], 0);
+		glUniform3f(xres->program_id[0].color, 1.0,1.0,1.0);
+		glEnableVertexAttribArray(xres->program_id[0].attribute);
+		glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
+		glVertexAttribPointer(
+			xres->program_id[0].attribute,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			(void*)0
+		);
+
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	}
-	glDisableVertexAttribArray(xres->program_id[1].attribute);
-	
-	//Surprise Gobo Render
-	glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[1]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glUseProgram(xres->program_id[0].program);
-	glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
-	
-	glUniformMatrix4fv(xres->program_id[0].modelview, 1, GL_FALSE, &(modelview[0][0]));
-	glUniform1i(xres->program_id[0].sampler[0], 0);
-	glUniform3f(xres->program_id[0].color, 1.0,1.0,1.0);
-	glEnableVertexAttribArray(xres->program_id[0].attribute);
-	glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
-	glVertexAttribPointer(
-		xres->program_id[0].attribute,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		(void*)0
-	);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glDisableVertexAttribArray(xres->program_id[0].attribute);
+		glDisableVertexAttribArray(xres->program_id[0].attribute);
+	
+		//Blur/Filter Program ping pong 0 to 1 then to 0
+		glUseProgram(xres->program_id[1].program);
+		glUniform1i(xres->program_id[1].sampler[0], 0);
+		glUniform2f(xres->program_id[1].modelview, window_x_scale * xres->window_width, window_y_scale * xres->window_height);
+		glEnableVertexAttribArray(xres->program_id[1].attribute);
+		glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
+		glVertexAttribPointer(
+			xres->program_id[1].attribute,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			0
+		);
+		int i;
+		for(i = 0; i < pongs; ++i){
+			glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[1]);
+			glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[0]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glUniform1i( xres->program_id[1].horizontal, 0 );
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[0]);
+			glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[1]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glUniform1i( xres->program_id[1].horizontal, 1 );
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		}
+		glDisableVertexAttribArray(xres->program_id[1].attribute);
+	
+		//Surprise Gobo Render
+		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[1]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+		glUseProgram(xres->program_id[0].program);
+		glBindTexture(GL_TEXTURE_2D, xres->gobo_texture_ID);
+	
+		glUniformMatrix4fv(xres->program_id[0].modelview, 1, GL_FALSE, &(modelview[0][0]));
+		glUniform1i(xres->program_id[0].sampler[0], 0);
+		glUniform3f(xres->program_id[0].color, 1.0,1.0,1.0);
+		glEnableVertexAttribArray(xres->program_id[0].attribute);
+		glBindBuffer(GL_ARRAY_BUFFER, xres->fbo_vbo_ID);
+		glVertexAttribPointer(
+			xres->program_id[0].attribute,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			(void*)0
+		);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glDisableVertexAttribArray(xres->program_id[0].attribute);
 	
 		glViewport(0, 0, xres->window_width, xres->window_height);
 	}
@@ -376,6 +376,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glDisableVertexAttribArray(xres->program_id[2].attribute);
+	glBindTexture( GL_TEXTURE_2D, 0 );
 	glActiveTexture(GL_TEXTURE0);
 	glXSwapBuffers(xres->display, xres->main);
 	return 0;
