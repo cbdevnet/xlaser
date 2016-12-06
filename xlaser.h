@@ -84,7 +84,8 @@ typedef struct /*_XDATA*/ {
 	GLuint fbo_vbo_ID;
 	PROGRAM_ID program_id[3];
 	GLuint gobo_texture_ID;
-	uint8_t gobo_last;
+	int gobo_last;
+	bool update_last_frame;
 	#endif
 } XRESOURCES;
 
