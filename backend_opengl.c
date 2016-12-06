@@ -376,7 +376,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glDisableVertexAttribArray(xres->program_id[2].attribute);
-	glBindTexture( GL_TEXTURE_2D, 0 );
+	//glBindTexture( GL_TEXTURE_2D, 0 );
 	glActiveTexture(GL_TEXTURE0);
 	glXSwapBuffers(xres->display, xres->main);
 	return 0;
