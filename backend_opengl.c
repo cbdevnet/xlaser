@@ -172,7 +172,8 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 }
 
 int xlaser_reconfigure(XRESOURCES* xres){
-	for(int i = 0; i < 2; ++i){
+	int i;
+	for(i = 0; i < 2; ++i){
 		glBindRenderbuffer( GL_RENDERBUFFER, xres->rbo_depth[i]);
 		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[i]);
 		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[i]);
@@ -384,14 +385,14 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 }
 
 void backend_free(XRESOURCES* res){
-
+	int i;
 	glDeleteTextures(2, res->fbo_texture);
 	glDeleteRenderbuffers(2, res->rbo_depth);
 	glDeleteFramebuffers(2, res->fboID);
 
 	glDeleteTextures(1, &res->gobo_texture_ID);
 	glDeleteBuffers(1, &res->fbo_vbo_ID);
-	for(int i = 0; i < sizeof(res->program_id) / sizeof(PROGRAM_ID); ++i)
+	for(i = 0; i < sizeof(res->program_id) / sizeof(PROGRAM_ID); ++i)
 		glDeleteProgram(res->program_id[i].program);
 	glXDestroyContext(res->display, res->gl_context);
 }
