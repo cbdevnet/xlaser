@@ -103,8 +103,9 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 
 	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1, DrawBuffers);
-	
-	for(int i = 0; i < 2; ++i){
+
+	int i;	
+	for(i = 0; i < 2; ++i){
 		glBindTexture( GL_TEXTURE_2D, res->fbo_texture[i]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -305,7 +306,8 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 		0,
 		0
 	);
-	for(int i = 0; i < pongs; ++i){
+	int i;
+	for(i = 0; i < pongs; ++i){
 		glBindFramebuffer(GL_FRAMEBUFFER, xres->fboID[1]);
 		glBindTexture(GL_TEXTURE_2D, xres->fbo_texture[0]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
