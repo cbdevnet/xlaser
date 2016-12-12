@@ -42,9 +42,9 @@ run `make xrender`.
 ### Prerequisites (debian)
 * A C compiler
 * libx11-dev
-* x11proto-xext-dev
 * For the XRender backend
 	* x11proto-render-dev
+	* x11proto-xext-dev
 * For the OpenGL backend
 	* libglew-dev
 	* libgl1-mesa-dev

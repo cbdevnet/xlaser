@@ -13,6 +13,10 @@ int getHelp() {
 	return 0;
 }
 
+void signal_handler(int param) {
+	abort_signaled = 1;
+}
+
 int main(int argc, char** argv){
 	unsigned u;
 	CONFIG config = {
@@ -50,7 +54,10 @@ int main(int argc, char** argv){
 	}
 
 	//TODO sanity check config
-	//TODO set up signal handlers
+	//set up signal handler
+	signal(SIGINT, signal_handler);
+
+	//initialize x11 resources & backend
 	if(x11_init(&xres, &config) < 0){
 		fprintf(stderr, "Failed to initialize window\n");
 		exit(usage(argv[0]));
