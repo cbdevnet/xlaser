@@ -152,6 +152,10 @@ void x11_cleanup(XRESOURCES* res){
 		XDestroyWindow(res->display, res->main);
 	}
 
+	if(res->colormap){
+		XFreeColormap(res->display, res->colormap);
+	}
+
 	XCloseDisplay(res->display);
 	xfd_free(&(res->xfds));
 }
