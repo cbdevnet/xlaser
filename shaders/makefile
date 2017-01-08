@@ -10,4 +10,5 @@ shaders.h: $(SHADERS)
 	cat *.s.h > $@
 
 clean:
-	$(RM) *.h
+	$(RM) $(SHADERS)
+	$(RM) shaders.h
