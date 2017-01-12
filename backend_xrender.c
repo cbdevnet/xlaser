@@ -124,7 +124,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	//set up gobo
 	//FIXME might only want to update this upon incoming DMX data
-	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
+	for(selected_gobo = channels[GOBO]; selected_gobo >= 0 && !(xres->gobo[selected_gobo].data); selected_gobo--){
 	}
 
 	if(!(xres->gobo[selected_gobo].data)){

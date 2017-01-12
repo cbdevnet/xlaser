@@ -212,7 +212,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	}
 
 	//gobo fallback selection
-	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; --selected_gobo){}
+	for(selected_gobo = channels[GOBO]; selected_gobo >= 0 && !(xres->gobo[selected_gobo].data); --selected_gobo){}
 
 	//shutter implementation
 	if(channels[SHUTTER]){

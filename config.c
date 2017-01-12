@@ -81,6 +81,10 @@ int config_remap(const char* category, char* key, char* value, EConfig* econfig,
 			//FIXME can econfig handle this?
 			token = strtok(value, " ");
 			do{
+				if(!token){
+					//this should never happen
+					break;
+				}
 				if(!strcmp(token, "fixed")){
 					config->dmx_config[u].fixed = true;
 					token = strtok(NULL, " ");
