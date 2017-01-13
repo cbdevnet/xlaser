@@ -65,8 +65,8 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	}
 
 	fprintf(stderr, "Creating gobo pixmaps with dimensions %dx%d\n", gobo_max_width, gobo_max_height);
-	res->gobo_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
-	res->color_pixmap = XCreatePixmap(res->display, res->back_buffer, gobo_max_width, gobo_max_height, 32);
+	res->gobo_pixmap = XCreatePixmap(res->display, res->main, gobo_max_width, gobo_max_height, 32);
+	res->color_pixmap = XCreatePixmap(res->display, res->main, gobo_max_width, gobo_max_height, 32);
 	if(!res->gobo_pixmap || ! res->color_pixmap){
 		fprintf(stderr, "Failed to create backing pixmaps\n");
 		return -1;
@@ -124,7 +124,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	//set up gobo
 	//FIXME might only want to update this upon incoming DMX data
-	for(selected_gobo = channels[GOBO]; !(xres->gobo[selected_gobo].data) && selected_gobo >= 0; selected_gobo--){
+	for(selected_gobo = channels[GOBO]; selected_gobo >= 0 && !(xres->gobo[selected_gobo].data); selected_gobo--){
 	}
 
 	if(!(xres->gobo[selected_gobo].data)){
