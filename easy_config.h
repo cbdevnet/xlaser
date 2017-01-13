@@ -1,12 +1,13 @@
 #pragma once
+#include <stdbool.h>
+
 
 typedef struct ECParam ECParam;
 struct ECParam {
 	const char* name;
 	void* f;
-	ECParam* next;	
+	ECParam* next;
 };
-
 
 typedef struct ECCategory ECCategory;
 struct ECCategory {
@@ -16,11 +17,10 @@ struct ECCategory {
 	ECCategory* next;
 };
 
-
 typedef struct EConfig {
 	const char* file;
 	char* delim;
-	unsigned lastid;
+	int lastid;
 	ECCategory* categories;
 	void* user_param;
 } EConfig;
@@ -33,7 +33,6 @@ typedef enum {
 	EC_KEY_NOT_FOUND = -4
 } EC_ERRORS;
 
-
 EConfig* econfig_init(const char* file, void* user_param);
 unsigned econfig_addCategory(EConfig* config, const char* category);
 int econfig_addParam(EConfig* config, unsigned category, const char* param, void* f);
@@ -41,5 +40,5 @@ int econfig_parse(EConfig* config);
 void econfig_free(EConfig* config);
 
 int econfig_getInt(char* value);
-unsigned econfig_getUnsignedInt(char* value);
-int econfig_getBoolean(char* value);
+unsigned int econfig_getUnsignedInt(char* value);
+bool econfig_getBoolean(char* value);

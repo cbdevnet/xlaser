@@ -255,9 +255,11 @@ int econfig_parseLine(EConfig* config, char* line, size_t len) {
 int econfig_parse(EConfig* config) {
 	FILE* file;
 
-
-	file = fopen(config->file, "r");
-
+	if (config->file == NULL) {
+		file = stdin;
+	} else {
+		file = fopen(config->file, "r");
+	}
 	if (!file) {
 		return EC_CANNOT_OPEN_FILE;
 	}
@@ -283,11 +285,11 @@ int econfig_getInt(char* value) {
 	return strtol(value, NULL, 10);
 }
 
-unsigned econfig_getUnsignedInt(char* value) {
+unsigned int econfig_getUnsignedInt(char* value) {
 	return strtoul(value, NULL, 10);
 }
 
-int econfig_getBoolean(char* value) {
+bool econfig_getBoolean(char* value) {
 
 	/* first to lower case*/
 	unsigned len = strlen(value);
@@ -296,16 +298,16 @@ int econfig_getBoolean(char* value) {
 		value[i] = tolower(value[i]);
 	}
 
-	if (!strcmp(value, "true")) {
-		return 1;
-	} else if (!strcmp(value, "false")) {
-		return 0;
-	} else if (!strcmp(value, "1")) {
-		return 1;
-	} else if (!strcmp(value, "0")) {
-		return 0;
+	if (strcmp(value, "true")) {
+		return true;
+	} else if (strcmp(value, "false")) {
+		return false;
+	} else if (strcmp(value, "1")) {
+		return true;
+	} else if (strcmp(value, "0")) {
+		return false;
 	}
 
-	return -1;
+	return 0;
 
 }
