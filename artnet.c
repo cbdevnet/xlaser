@@ -58,9 +58,9 @@ int get_node_address(CONFIG* config, uint8_t address[4]) {
 	return 0;
 }
 
-int get_mac_address(CONFIG* config, uint8_t mac[8]) {
+int get_mac_address(CONFIG* config, uint8_t mac[6]) {
 	//TODO return node mac address
-	memset(mac, 0, 8);
+	memset(mac, 0, 6);
 	return 0;
 }
 
