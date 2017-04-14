@@ -1,11 +1,13 @@
-export PREFIX?=/usr
-export DOCDIR?=$(DESTDIR)$(PREFIX)/share/man/man1
+export PREFIX ?= /usr
+export DOCDIR ?= $(DESTDIR)$(PREFIX)/share/man/man1
 
 .PHONY: all clean shaders run
-xrender: CFLAGS ?= -g -Wall
-opengl: CFLAGS ?= -g -Wall -DOPENGL
-opengl: LDLIBS ?= -lm -lX11 -lGLEW -lGL
-xrender: LDLIBS ?= -lm -lXext -lX11 -lXrender
+CFLAGS ?= -g -Wall
+LDLIBS ?= -lm -lX11
+
+opengl: CFLAGS += -DOPENGL
+opengl: LDLIBS += -lGLEW -lGL
+xrender: LDLIBS += -lXext -lXrender
 
 all: opengl xlaser.1.gz
 

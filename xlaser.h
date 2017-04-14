@@ -17,15 +17,10 @@
 #include <X11/Xutil.h>
 
 #ifdef OPENGL
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
+	#include "backend_opengl.h"
+	#include "shaders/shaders.h"
 #else
-#include <X11/extensions/Xdbe.h>
-#include <X11/extensions/Xrender.h>
-#define BLUR_KERNEL_DIM 3
-#define BLUR_SIGMA 20.0
-#define BLUR_CONSTANT 4
+	#include "backend_xrender.h"
 #endif
 
 #include "xfds.h"
@@ -42,18 +37,6 @@ typedef struct /*_GOBO*/ {
 	uint8_t* data;
 } GOBO_IMG;
 
-#ifdef OPENGL
-typedef struct /*PROGRAM IDs*/{
-	GLuint program;
-	GLuint attribute;
-	GLuint sampler[2];
-	GLuint color;
-	GLuint modelview;
-	GLuint horizontal;
-	GLuint exposure;
-}PROGRAM_ID;
-#endif
-
 typedef struct /*_XDATA*/ {
 	int screen;
 	Display* display;
@@ -66,27 +49,7 @@ typedef struct /*_XDATA*/ {
 	struct timespec last_render;
 	Colormap colormap;
 	XVisualInfo visual_info;
-	#ifndef OPENGL
-	XdbeBackBuffer back_buffer;
-	Pixmap gobo_pixmap;
-	Pixmap color_pixmap;
-	Picture composite_buffer;
-	Picture alpha_mask;
-	Picture color_buffer;
-	bool blur_enabled;
-	GC window_gc;
-	double gauss_kernel[BLUR_KERNEL_DIM][BLUR_KERNEL_DIM];
-	#else
-	GLXContext gl_context;
-	GLuint fboID[2];
-	GLuint rbo_depth[2];
-	GLuint fbo_texture[2];
-	GLuint fbo_vbo_ID;
-	PROGRAM_ID program_id[3];
-	GLuint gobo_texture_ID;
-	int gobo_last;
-	bool update_last_frame;
-	#endif
+	backend_data backend;
 } XRESOURCES;
 
 typedef struct /*_CHANNEL_CFG*/ {
@@ -167,11 +130,10 @@ int usage(char* fn);
 #include "artnet.h"
 #include "artnet.c"
 #include "xfds.c"
-#ifndef OPENGL
-#include "backend_xrender.c"
+#ifdef OPENGL
+	#include "backend_opengl.c"
 #else
-#include "shaders/shaders.h"
-#include "backend_opengl.c"
+	#include "backend_xrender.c"
 #endif
 #include "x11.c"
 #include "coreloop.c"

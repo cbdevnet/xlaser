@@ -14,14 +14,14 @@ void generate_gauss_filter(XRESOURCES* res) {
 		for (j = (-1.0) * half_dim; j < half_dim + 1; j++) {
 			val = (first * exp( -1.0 * ((i * i + j * j) / div)));
 			sum += val;
-			res->gauss_kernel[i + half_dim][j + half_dim] = val;
+			res->backend.gauss_kernel[i + half_dim][j + half_dim] = val;
 		}
 	}
 
 	// normalize
 	for (i = 0; i < BLUR_KERNEL_DIM; i++) {
 		for (j = 0; j < BLUR_KERNEL_DIM; j++) {
-			res->gauss_kernel[i][j] /= sum;
+			res->backend.gauss_kernel[i][j] /= sum;
 		}
 	}
 }
@@ -44,7 +44,7 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 
 	//allocate back drawing buffer
 	if(config->double_buffer){
-		res->back_buffer = XdbeAllocateBackBufferName(res->display, res->main, XdbeBackground);
+		res->backend.back_buffer = XdbeAllocateBackBufferName(res->display, res->main, XdbeBackground);
 	}
 
 	for(u = 0; u < 256; u++){
@@ -65,26 +65,26 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	}
 
 	fprintf(stderr, "Creating gobo pixmaps with dimensions %dx%d\n", gobo_max_width, gobo_max_height);
-	res->gobo_pixmap = XCreatePixmap(res->display, res->main, gobo_max_width, gobo_max_height, 32);
-	res->color_pixmap = XCreatePixmap(res->display, res->main, gobo_max_width, gobo_max_height, 32);
-	if(!res->gobo_pixmap || ! res->color_pixmap){
+	res->backend.gobo_pixmap = XCreatePixmap(res->display, res->main, gobo_max_width, gobo_max_height, 32);
+	res->backend.color_pixmap = XCreatePixmap(res->display, res->main, gobo_max_width, gobo_max_height, 32);
+	if(!res->backend.gobo_pixmap || ! res->backend.color_pixmap){
 		fprintf(stderr, "Failed to create backing pixmaps\n");
 		return -1;
 	}
 
 	//debug_gc = XCreateGC(xres->display, gobo_pixmap, GCForeground | GCBackground, &debug_gc_values);
-	res->window_gc = XCreateGC(res->display, res->gobo_pixmap, 0, NULL);
-	res->composite_buffer = XRenderCreatePicture(res->display, res->main, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
-	res->color_buffer = XRenderCreatePicture(res->display, res->color_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
-	res->alpha_mask = XRenderCreatePicture(res->display, res->gobo_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+	res->backend.window_gc = XCreateGC(res->display, res->backend.gobo_pixmap, 0, NULL);
+	res->backend.composite_buffer = XRenderCreatePicture(res->display, res->main, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+	res->backend.color_buffer = XRenderCreatePicture(res->display, res->backend.color_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
+	res->backend.alpha_mask = XRenderCreatePicture(res->display, res->backend.gobo_pixmap, XRenderFindStandardFormat(res->display, PictStandardARGB32), 0, 0);
 
 	//check XRender filtering capabilities
-	XFilters* filters = XRenderQueryFilters(res->display, res->gobo_pixmap);
+	XFilters* filters = XRenderQueryFilters(res->display, res->backend.gobo_pixmap);
 	for(u = 0; u < filters->nfilter; u++){
 		fprintf(stderr, "Available filter %d of %d: %s\n", u + 1, filters->nfilter, filters->filter[u]);
 		if(!strcmp(filters->filter[u], "convolution")){
 			fprintf(stderr, "Convolution filter supported, enabling focus effect...\n");
-			res->blur_enabled = true;
+			res->backend.blur_enabled = true;
 			generate_gauss_filter(res);
 		}
 	}
@@ -204,14 +204,14 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	//flood-fill the color pixmap TODO benchmark XFillRectangle vs XRenderFillRectangle
 	//XFillRectangle(xres->display, color_pixmap, debug_gc, 0, 0, window_width, window_height);
-	XRenderFillRectangle(xres->display, PictOpSrc, xres->color_buffer, &render_color, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
+	XRenderFillRectangle(xres->display, PictOpSrc, xres->backend.color_buffer, &render_color, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 
 	//fill color pixmap via normal X operation
 	//XFillRectangle(xres->display, xres->back_buffer, debug_gc, 200, 200, 50, 50);
 	//XRenderFillRectangle(xres->display, PictOpOver, back_buffer, &render_color, 400, 200, 50, 50);
 	//XPutImage(xres->display, xres->back_buffer, DefaultGC(xres->display, xres->screen), xres->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	
-	XPutImage(xres->display, xres->gobo_pixmap, xres->window_gc, xres->gobo[selected_gobo].ximage, 0, 0, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
+	XPutImage(xres->display, xres->backend.gobo_pixmap, xres->backend.window_gc, xres->gobo[selected_gobo].ximage, 0, 0, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XPutImage(xres->display, xres->gobo_pixmap, DefaultGC(xres->display, xres->screen), xres->gobo[selected_gobo].ximage, 0, 0, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XPutImage(xres->display, xres->back_buffer, debug_gc, xres->gobo[selected_gobo].ximage, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 
@@ -238,7 +238,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	transform.matrix[0][2] = XDoubleToFixed(transform_x);
 	transform.matrix[1][2] = XDoubleToFixed(transform_y);
 
-	if(xres->blur_enabled){
+	if(xres->backend.blur_enabled){
 		if(channels[FOCUS]){
 			// n x n matrix plus width and height
 			int blur_kernel_size = BLUR_KERNEL_DIM * BLUR_KERNEL_DIM + 2;
@@ -254,7 +254,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 			for (i = 0; i < BLUR_KERNEL_DIM; i++) {
 				for (j = 0; j < BLUR_KERNEL_DIM; j++) {
-					val = chan * xres->gauss_kernel[i][j];
+					val = chan * xres->backend.gauss_kernel[i][j];
 					if (i == BLUR_KERNEL_DIM / 2 && j == BLUR_KERNEL_DIM / 2) {
 						val += 1.0 - chan;
 					}
@@ -263,18 +263,18 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 			}
 			fprintf(stderr, "Applying blur filter\n");
 			//apply blur
-			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "convolution", blur_kernel, blur_kernel_size);
+			XRenderSetPictureFilter(xres->display, xres->backend.alpha_mask, "convolution", blur_kernel, blur_kernel_size);
 		}
 		else{
-			XRenderSetPictureFilter(xres->display, xres->alpha_mask, "fast", NULL, 0);
+			XRenderSetPictureFilter(xres->display, xres->backend.alpha_mask, "fast", NULL, 0);
 		}
 	}
 
-	XRenderSetPictureTransform(xres->display, xres->alpha_mask, &transform);
+	XRenderSetPictureTransform(xres->display, xres->backend.alpha_mask, &transform);
 	//XRenderSetPictureTransform(xres->display, color_buffer, &transform);
 	XClearWindow(xres->display, xres->main);
 
-	XRenderComposite(xres->display, PictOpOver, xres->color_buffer, xres->alpha_mask, xres->composite_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
+	XRenderComposite(xres->display, PictOpOver, xres->backend.color_buffer, xres->backend.alpha_mask, xres->backend.composite_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderComposite(xres->display, PictOpOver, color_buffer, None, back_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderFillRectangle(xres->display, PictOpSrc, back_buffer, &render_color, 600, 200, 50, 50);
@@ -284,12 +284,12 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 void backend_free(XRESOURCES* res){
 	unsigned u;
 
-	XRenderFreePicture(res->display, res->composite_buffer);
-	XRenderFreePicture(res->display, res->alpha_mask);
-	XRenderFreePicture(res->display, res->color_buffer);
+	XRenderFreePicture(res->display, res->backend.composite_buffer);
+	XRenderFreePicture(res->display, res->backend.alpha_mask);
+	XRenderFreePicture(res->display, res->backend.color_buffer);
 
-	XFreePixmap(res->display, res->gobo_pixmap);
-	XFreePixmap(res->display, res->color_pixmap);
+	XFreePixmap(res->display, res->backend.gobo_pixmap);
+	XFreePixmap(res->display, res->backend.color_pixmap);
 
 	for(u = 0; u < 256; u++){
 		if(res->gobo[u].data){
@@ -299,5 +299,5 @@ void backend_free(XRESOURCES* res){
 		}
 	}
 
-	XFreeGC(res->display, res->window_gc);
+	XFreeGC(res->display, res->backend.window_gc);
 }
