@@ -1,43 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.2.2/MA.xsd" major_vers="3" minor_vers="2" stream_vers="2">
-	<Info datetime="2017-05-22T03:33:31" showfile="xlaser" />
+	<Info datetime="2017-05-22T04:07:40" showfile="xlaser" />
 	<FixtureType index="2" name="XLaser" mode="OpenGL">
-		<notes>XLaser OpenGL Mode, software available at https://github.com/cbdevnet/xlaser</notes>
-		<revision date="2017-05-22" text="Initial file" generator_software_name="Manual" generator_software_version="newest" />
+		<InfoItems>
+			<Info>XLaser OpenGL Mode, software available at https://github.com/cbdevnet/xlaser</Info>
+			<Info type="Revision" date="2017-05-22T00:00:00">Initial file</Info>
+		</InfoItems>
 		<short_name>XLsr</short_name>
 		<manufacturer>#kitinfo</manufacturer>
 		<short_manufacturer>#ktnfo</short_manufacturer>
 		<Modules index="0">
-			<Body>
-				<Size x="0.472" y="0.230" z="0.618" />
-				<Center x="0.000" y="0.000" z="-0.618" />
-				<Light x="0.000" y="0.000" z="0.618" />
-			</Body>
 			<Module index="0" name="Main Module" class="Headmover" beamtype="Spot" beam_angle="10" beam_intensity="10000">
+				<Body>
+					<Size x="0.5" y="0.42" z="0.66" />
+				</Body>
 				<ChannelType index="0" attribute="PAN" feature="POSITION" preset="POSITION" coarse="1" fine="2" default="32767.5">
-					<ChannelFunction index="0" from="-270.0" to="270.0" min_dmx_24="0" max_dmx_24="16777215" physfrom="-270" physto="270" subattribute="PAN" subattribute_user_name="Pan" attribute="PAN" attribute_user_name="Pan" feature="POSITION" feature_user_name="Position" preset="POSITION" preset_user_name="Position">
+					<ChannelFunction index="0" from="-270" to="270" min_dmx_24="0" max_dmx_24="16777215" physfrom="-270" physto="270" subattribute="PAN" subattribute_user_name="Pan" attribute="PAN" attribute_user_name="Pan" feature="POSITION" feature_user_name="Position" preset="POSITION" preset_user_name="Position">
 						<ChannelSet index="0" name="center" from_dmx="32768" to_dmx="32768" />
 					</ChannelFunction>
 				</ChannelType>
 				<ChannelType index="1" attribute="TILT" feature="POSITION" preset="POSITION" coarse="3" fine="4" default="32767.5">
-					<ChannelFunction index="0" from="-140.0" to="140.0" min_dmx_24="0" max_dmx_24="16777215" physfrom="-140" physto="140" subattribute="TILT" subattribute_user_name="Tilt" attribute="TILT" attribute_user_name="Tilt" feature="POSITION" feature_user_name="Position" preset="POSITION" preset_user_name="Position">
+					<ChannelFunction index="0" from="-140" to="140" min_dmx_24="0" max_dmx_24="16777215" physfrom="-140" physto="140" subattribute="TILT" subattribute_user_name="Tilt" attribute="TILT" attribute_user_name="Tilt" feature="POSITION" feature_user_name="Position" preset="POSITION" preset_user_name="Position">
 						<ChannelSet index="0" name="center" from_dmx="32768" to_dmx="32768" />
 					</ChannelFunction>
 				</ChannelType>
-				<ChannelType index="2" attribute="COLORRGB1" feature="COLORRGB" preset="COLOR" coarse="5" highlight_value="100" color="ff0000">
-					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="COLORRGB1" subattribute_user_name="R" attribute="COLORRGB1" attribute_user_name="R" feature="COLORRGB" feature_user_name="MixColor" preset="COLOR" preset_user_name="Color">
+				<ChannelType index="2" attribute="COLOR1" feature="COLOR1" preset="COLOR" coarse="5" highlight_value="100">
+					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="COLOR1" subattribute_user_name="Select" attribute="COLOR1" attribute_user_name="C1" feature="COLOR1" feature_user_name="Color1" preset="COLOR" preset_user_name="Color">
 						<ChannelSet index="0" name="off" from_dmx="0" to_dmx="0" />
 						<ChannelSet index="1" name="full" from_dmx="255" to_dmx="255" />
 					</ChannelFunction>
 				</ChannelType>
-				<ChannelType index="3" attribute="COLORRGB2" feature="COLORRGB" preset="COLOR" coarse="6" highlight_value="100" color="00ff00">
-					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="COLORRGB2" subattribute_user_name="G" attribute="COLORRGB2" attribute_user_name="G" feature="COLORRGB" feature_user_name="MixColor" preset="COLOR" preset_user_name="Color">
+				<ChannelType index="3" attribute="COLOR2" feature="COLOR2" preset="COLOR" coarse="6" highlight_value="100">
+					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="COLOR2" subattribute_user_name="Select2" attribute="COLOR2" attribute_user_name="C2" feature="COLOR2" feature_user_name="Color2" preset="COLOR" preset_user_name="Color">
 						<ChannelSet index="0" name="off" from_dmx="0" to_dmx="0" />
 						<ChannelSet index="1" name="full" from_dmx="255" to_dmx="255" />
 					</ChannelFunction>
 				</ChannelType>
-				<ChannelType index="4" attribute="COLORRGB3" feature="COLORRGB" preset="COLOR" coarse="7" highlight_value="100" color="0000ff">
-					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="COLORRGB3" subattribute_user_name="B" attribute="COLORRGB3" attribute_user_name="B" feature="COLORRGB" feature_user_name="MixColor" preset="COLOR" preset_user_name="Color">
+				<ChannelType index="4" attribute="COLOR3" feature="COLOR3" preset="COLOR" coarse="7" highlight_value="100">
+					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="COLOR3" subattribute_user_name="Select3" attribute="COLOR3" attribute_user_name="C3" feature="COLOR3" feature_user_name="Color3" preset="COLOR" preset_user_name="Color">
 						<ChannelSet index="0" name="off" from_dmx="0" to_dmx="0" />
 						<ChannelSet index="1" name="full" from_dmx="255" to_dmx="255" />
 					</ChannelFunction>
@@ -58,7 +58,7 @@
 					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" subattribute="GOBO1" subattribute_user_name="Select" attribute="GOBO1" attribute_user_name="G1" feature="GOBO1" feature_user_name="Gobo1" preset="GOBO" preset_user_name="Gobo" />
 				</ChannelType>
 				<ChannelType index="8" attribute="ZOOM" feature="FOCUS" preset="FOCUS" coarse="11" highlight_value="0">
-					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" physfrom="1.0" physto="2.0" subattribute="ZOOM" subattribute_user_name="Zoom" attribute="ZOOM" attribute_user_name="Zoom" feature="FOCUS" feature_user_name="Focus" preset="FOCUS" preset_user_name="Focus" />
+					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" physfrom="1" physto="2" subattribute="ZOOM" subattribute_user_name="Zoom" attribute="ZOOM" attribute_user_name="Zoom" feature="FOCUS" feature_user_name="Focus" preset="FOCUS" preset_user_name="Focus" />
 				</ChannelType>
 				<ChannelType index="9" attribute="GOBO1_POS" feature="GOBO1" preset="GOBO" coarse="12">
 					<ChannelFunction index="0" from="0" to="100" min_dmx_24="0" max_dmx_24="16777215" physfrom="0" physto="360" subattribute="GOBO1_POS" subattribute_user_name="Index" attribute="GOBO1_POS" attribute_user_name="G1&lt;&gt;" feature="GOBO1" feature_user_name="Gobo1" preset="GOBO" preset_user_name="Gobo" />
@@ -80,6 +80,7 @@
 		<Instances index="1">
 			<Instance index="0" module_index="0" />
 		</Instances>
+		<Wheels index="2" />
 		<AutoPresets index="4" />
 	</FixtureType>
 </MA>
