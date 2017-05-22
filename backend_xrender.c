@@ -99,7 +99,9 @@ int xlaser_reconfigure(XRESOURCES* res){
 int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	uint8_t selected_gobo;
 	//XColor rgb_color;
-	XRenderColor render_color;
+	XRenderColor render_color = {
+		0
+	};
 	XTransform transform = {{
 		{XDoubleToFixed(1), XDoubleToFixed(0), XDoubleToFixed(0)},
 		{XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0)},
