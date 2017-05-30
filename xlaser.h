@@ -98,7 +98,8 @@ enum /*DMX_CHANNEL*/ {
 	ROTATION = 11,
 	ROTATION_SPEED = 12,
 	FOCUS = 13,
-	EXPOSURE = 14
+	EXPOSURE = 14,
+	TRACE = 15
 };
 
 const char* CHANNEL_NAME[DMX_CHANNELS] = {
@@ -116,7 +117,8 @@ const char* CHANNEL_NAME[DMX_CHANNELS] = {
 	[ROTATION] = "rotation",
 	[ROTATION_SPEED] = "rotationspeed",
 	[FOCUS] = "focus",
-	[EXPOSURE] = "exposure"
+	[EXPOSURE] = "exposure",
+	[TRACE] = "trace"
 };
 
 int usage(char* fn);

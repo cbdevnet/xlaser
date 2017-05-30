@@ -102,11 +102,17 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	XRenderColor render_color = {
 		0
 	};
+	XRenderColor clear_color = {
+		//.alpha = (65535) * ((double)((255.0 - (double)channels[TRACE])/255.0))
+		.alpha = (255 - channels[TRACE]) << 8 | 0xFF
+	};
 	XTransform transform = {{
 		{XDoubleToFixed(1), XDoubleToFixed(0), XDoubleToFixed(0)},
 		{XDoubleToFixed(0), XDoubleToFixed(1), XDoubleToFixed(0)},
 		{XDoubleToFixed(0), XDoubleToFixed(0), XDoubleToFixed(1)}
 	}};
+
+	fprintf(stderr, "Clear color is %u\n", clear_color.alpha);
 
 	//legacy compliant code
 	/*XGCValues debug_gc_values = {
@@ -274,7 +280,8 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 
 	XRenderSetPictureTransform(xres->display, xres->backend.alpha_mask, &transform);
 	//XRenderSetPictureTransform(xres->display, color_buffer, &transform);
-	XClearWindow(xres->display, xres->main);
+	//XClearWindow(xres->display, xres->main);
+	XRenderFillRectangle(xres->display, PictOpOver, xres->backend.composite_buffer, &clear_color, 0, 0, xres->window_width, xres->window_height);
 
 	XRenderComposite(xres->display, PictOpOver, xres->backend.color_buffer, xres->backend.alpha_mask, xres->backend.composite_buffer, 0, 0, 0, 0, x_pos, y_pos, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
 	//XRenderComposite(xres->display, PictOpOver, alpha_mask, alpha_mask, color_buffer, 0, 0, 0, 0, 0, 0, xres->gobo[selected_gobo].width, xres->gobo[selected_gobo].height);
