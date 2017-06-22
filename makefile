@@ -7,14 +7,20 @@ LDLIBS ?= -lm -lX11
 
 opengl: CFLAGS += -DOPENGL
 opengl: LDLIBS += -lGLEW -lGL
+
+opengl2: CFLAGS += -DOPENGL2
+opengl2: LDLIBS += -lGLEW -lGL
+
 xrender: LDLIBS += -lXext -lXrender
 
-all: opengl xlaser.1.gz
+all: opengl2 xlaser.1.gz
 
 shaders:
 	$(MAKE) -C shaders
 
 opengl: shaders xlaser
+
+opengl2: shaders xlaser
 
 xrender: xlaser
 

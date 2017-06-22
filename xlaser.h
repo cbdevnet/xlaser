@@ -19,6 +19,9 @@
 #ifdef OPENGL
 	#include "backend_opengl.h"
 	#include "shaders/shaders.h"
+#elif OPENGL2
+	#include "backend_opengl2.h"
+	#include "shaders/shaders.h"
 #else
 	#include "backend_xrender.h"
 #endif
@@ -134,6 +137,8 @@ int usage(char* fn);
 #include "xfds.c"
 #ifdef OPENGL
 	#include "backend_opengl.c"
+#elif OPENGL2
+	#include "backend_opengl2.c"
 #else
 	#include "backend_xrender.c"
 #endif
