@@ -52,6 +52,7 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 	unsigned u;
 	int major = 0, minor = 0;
 	GLenum glew_err;
+	GLboolean b_res;
 
 	GLfloat target_quad[] = {
 		-1, -1,
@@ -59,6 +60,12 @@ int backend_init(XRESOURCES* res, CONFIG* config){
 		-1, 1,
 		1, 1
 	};
+
+	glGetBooleanv(GL_SHADER_COMPILER, &b_res);
+	if(!res){
+		fprintf(stderr, "OpenGL does not support shader compiler\n");
+		return -1;
+	}
 
 	//create gl context
 	res->backend.gl_context = glXCreateContext(res->display, &(res->visual_info), NULL, True);
