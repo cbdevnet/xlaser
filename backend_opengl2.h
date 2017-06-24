@@ -20,6 +20,7 @@ typedef struct /*_OPENGL_DATA*/ {
 	GLuint fbo_vbo_ID;
 	PROGRAM program[3];
 	GLuint gobo_texture_ID;
+	GLuint texturepixel_ID;
 	int gobo_last;
 	bool update_last_frame;
 } backend_data;
