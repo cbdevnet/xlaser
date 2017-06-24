@@ -1,3 +1,5 @@
+#include <math.h>
+
 int backend_compile_shader(GLuint shader_id, unsigned char** shader_source, ssize_t shader_length){
 	GLint result = GL_FALSE;
 	int log_length;
@@ -226,7 +228,7 @@ int xlaser_render(XRESOURCES* xres, uint8_t* channels){
 	double dimmer_factor = (double) channels[DIMMER] / 255.0;
 	uint8_t selected_gobo;
 	double focus = (double) channels[FOCUS] / 255.0;
-	const double trace = 1.0 - (double) channels[TRACE] / 255.0;
+	const double trace = sqrt(1.0 - (double) channels[TRACE] / 255.0);
 	const double angle = M_PI * 2 *((double) (channels[ROTATION] / 255.0));
 	const double cos_a = cos(angle);
 	const double sin_a = sin(angle);
